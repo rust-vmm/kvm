@@ -1,8 +1,9 @@
 ## Fixed
 
-- [[#298](https://github.com/rust-vmm/kvm/pull/298)]: Fixed incorrect usage of `ioctl_wit_ref` in the
-  `create_device` method. Replace it with `ioctl_wit_mut_ref` as the passed parameter may be mutated by the
-  ioctl.
+- [[#298](https://github.com/rust-vmm/kvm/pull/298)]: Fixed incorrect
+  usage of `ioctl_with_ref` in the `create_device` method. Replace it
+  with `ioctl_with_mut_ref` as the passed parameter may be mutated by
+  the ioctl.
 
 # v0.12.0
 
