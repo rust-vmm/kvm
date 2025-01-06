@@ -2863,7 +2863,7 @@ mod tests {
 
         // Don't drop the File object, or it'll notice the file it's trying to close is
         // invalid and abort the process.
-        faulty_vcpu_fd.vcpu.into_raw_fd();
+        let _ = faulty_vcpu_fd.vcpu.into_raw_fd();
     }
 
     #[test]
@@ -2909,7 +2909,7 @@ mod tests {
 
         // Don't drop the File object, or it'll notice the file it's trying to close is
         // invalid and abort the process.
-        faulty_vcpu_fd.vcpu.into_raw_fd();
+        let _ = faulty_vcpu_fd.vcpu.into_raw_fd();
     }
 
     #[test]
