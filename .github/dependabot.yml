@@ -1,7 +1,25 @@
 version: 2
 updates:
+
+# A monthly update of the rust-vmm-ci submodule
 - package-ecosystem: gitsubmodule
   directory: "/"
   schedule:
     interval: monthly
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 1
+
+# A monthly update to rust dependencies. These will be grouped,
+# e.g. one PR will contains updates for all dependencies.
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 1
+  # Make it also update transitive dependencies in Cargo.lock
+  allow:
+    - dependency-type: "all"
+  # Group all available updates into a group called "rust-dependencies"
+  groups:
+    rust-dependencies:
+      patterns:
+        - "*"
