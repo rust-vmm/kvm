@@ -8,7 +8,7 @@ use x86_64::bindings::*;
 /// Maximum number of CPUID entries that can be returned by a call to KVM ioctls.
 ///
 /// See arch/x86/include/asm/kvm_host.h
-pub const KVM_MAX_CPUID_ENTRIES: usize = 80;
+pub const KVM_MAX_CPUID_ENTRIES: usize = 256;
 
 /// Maximum number of MSRs KVM supports (See arch/x86/kvm/x86.c).
 pub const KVM_MAX_MSR_ENTRIES: usize = 256;
