@@ -5,6 +5,8 @@
 
 ### Changed
 
+- Updated KVM_MAX_CPUID_ENTRIES to 256.
+
 ### Removed
 
 ## [0.10.0]
