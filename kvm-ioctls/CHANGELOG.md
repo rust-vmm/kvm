@@ -2,10 +2,16 @@
 
 ## Upcoming Release
 
+## v0.20.0
+
 ### Added 
 
 - [[#288](https://github.com/rust-vmm/kvm-ioctls/pull/288)]: Introduce `Cap::GuestMemfd`, `Cap::MemoryAttributes` and 
    `Cap::UserMemory2` capabilities enum variants for use with `VmFd::check_extension`.
+
+### Changed
+
+- [[#305](https://github.com/rust-vmm/kvm/pull/305)]: Updated kvm-bindings to 0.11.0.
 
 ### Fixed
 
