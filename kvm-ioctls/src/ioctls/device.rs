@@ -57,7 +57,7 @@ impl DeviceFd {
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     ///
-    /// # #[cfg(not(target_arch = "riscv64"))]
+    /// # #[cfg(not(any(target_arch = "riscv64", target_arch = "loongarch64")))]
     /// # {
     /// # use kvm_bindings::{
     /// #     kvm_device_type_KVM_DEV_TYPE_VFIO,
@@ -210,6 +210,7 @@ mod tests {
     #[cfg(target_arch = "aarch64")]
     use kvm_bindings::{KVM_DEV_VFIO_GROUP, KVM_DEV_VFIO_GROUP_ADD};
 
+    #[cfg(not(target_arch = "loongarch64"))]
     use kvm_bindings::KVM_CREATE_DEVICE_TEST;
 
     #[test]
@@ -408,5 +409,88 @@ mod tests {
         // The maximum supported number of IRQs should be 128, same as the value
         // when we initialize the AIA.
         assert_eq!(data, 128);
+    }
+
+    #[test]
+    #[cfg(target_arch = "loongarch64")]
+    fn test_create_device() {
+        use crate::ioctls::vm::{create_eiointc_device, create_ipi_device, create_pchpic_device};
+        use kvm_bindings::{
+            kvm_device_attr, KVM_DEV_LOONGARCH_EXTIOI_GRP_REGS, KVM_DEV_LOONGARCH_IPI_GRP_REGS,
+            KVM_DEV_LOONGARCH_PCH_PIC_GRP_REGS,
+        };
+        use vmm_sys_util::errno::Error;
+
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let ipi_fd = create_ipi_device(&vm, 0);
+        let eio_fd = create_eiointc_device(&vm, 0);
+        let pch_fd = create_pchpic_device(&vm, 0);
+
+        vm.create_vcpu(0).unwrap();
+
+        let raw_fd = unsafe { libc::dup(ipi_fd.as_raw_fd()) };
+        assert!(raw_fd >= 0);
+        let ipi_fd = unsafe { DeviceFd::from_raw_fd(raw_fd) };
+
+        let mut data: u32 = 0;
+        let mut ipi_attr = kvm_device_attr {
+            group: KVM_DEV_LOONGARCH_IPI_GRP_REGS,
+            attr: 4,
+            addr: data as u64,
+            ..Default::default()
+        };
+
+        // Without properly providing the address to where the
+        // value will be stored, the ioctl fails with EFAULT.
+        let res = unsafe { ipi_fd.get_device_attr(&mut ipi_attr) };
+        assert_eq!(res, Err(Error::new(libc::EFAULT)));
+
+        ipi_attr.addr = &mut data as *mut u32 as u64;
+        unsafe { ipi_fd.get_device_attr(&mut ipi_attr) }.unwrap();
+        // The IPI enable state should be false.
+        assert_eq!(data, 0);
+
+        let raw_fd = unsafe { libc::dup(eio_fd.as_raw_fd()) };
+        assert!(raw_fd >= 0);
+        let eio_fd = unsafe { DeviceFd::from_raw_fd(raw_fd) };
+
+        let mut eio_attr = kvm_device_attr {
+            group: KVM_DEV_LOONGARCH_EXTIOI_GRP_REGS,
+            attr: 0x200,
+            addr: data as u64,
+            ..Default::default()
+        };
+
+        // Without properly providing the address to where the
+        // value will be stored, the ioctl fails with EFAULT.
+        let res = unsafe { eio_fd.get_device_attr(&mut eio_attr) };
+        assert_eq!(res, Err(Error::new(libc::EFAULT)));
+
+        eio_attr.addr = &mut data as *mut u32 as u64;
+        unsafe { eio_fd.get_device_attr(&mut eio_attr) }.unwrap();
+        // The EIOINTC enable state should be false.
+        assert_eq!(data, 0);
+
+        let raw_fd = unsafe { libc::dup(pch_fd.as_raw_fd()) };
+        assert!(raw_fd >= 0);
+        let pch_fd = unsafe { DeviceFd::from_raw_fd(raw_fd) };
+
+        let mut pch_attr = kvm_device_attr {
+            group: KVM_DEV_LOONGARCH_PCH_PIC_GRP_REGS,
+            attr: 0x3a0,
+            addr: data as u64,
+            ..Default::default()
+        };
+
+        // Without properly providing the address to where the
+        // value will be stored, the ioctl fails with EFAULT.
+        let res = unsafe { pch_fd.get_device_attr(&mut pch_attr) };
+        assert_eq!(res, Err(Error::new(libc::EFAULT)));
+
+        pch_attr.addr = &mut data as *mut u32 as u64;
+        unsafe { pch_fd.get_device_attr(&mut pch_attr) }.unwrap();
+        // The PCH-PIC ISR enable state should be false.
+        assert_eq!(data, 0);
     }
 }
