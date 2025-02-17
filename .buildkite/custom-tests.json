@@ -6,7 +6,8 @@
             "platform": [
                 "x86_64",
                 "aarch64",
-                "riscv64"
+                "riscv64",
+                "loongarch64"
             ]
         },
         {
@@ -23,7 +24,8 @@
             "platform": [
                 "x86_64",
                 "aarch64",
-                "riscv64"
+                "riscv64",
+                "loongarch64"
             ]
         },
         {
