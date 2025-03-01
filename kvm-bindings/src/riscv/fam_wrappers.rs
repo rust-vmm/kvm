@@ -4,14 +4,14 @@
 
 use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
 
-use riscv64::bindings::*;
+use riscv::bindings::*;
 
 // There is no constant in the kernel as far as the maximum number
 // of registers on RISC-V, but KVM_GET_REG_LIST usually returns around 160.
-const RISCV64_REGS_MAX: usize = 200;
+const RISCV_REGS_MAX: usize = 200;
 
 // Implement the FamStruct trait for kvm_reg_list.
-generate_fam_struct_impl!(kvm_reg_list, u64, reg, u64, n, RISCV64_REGS_MAX);
+generate_fam_struct_impl!(kvm_reg_list, u64, reg, u64, n, RISCV_REGS_MAX);
 
 // Implement the PartialEq trait for kvm_reg_list.
 impl PartialEq for kvm_reg_list {
