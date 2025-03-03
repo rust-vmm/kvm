@@ -69,7 +69,7 @@
 //!     use kvm_bindings::KVM_MEM_LOG_DIRTY_PAGES;
 //!
 //!     let mem_size = 0x4000;
-//!     let guest_addr = 0x1000;
+//!     let guest_addr = 0x4000;
 //!     let asm_code: &[u8];
 //!
 //!     // Setting up architectural dependent values.
@@ -104,6 +104,15 @@
 //!             0xa3, 0x23, 0x73, 0x00, // sw t2, t1 + 7;   dirty current page
 //!             0x23, 0x20, 0x75, 0x00, // sw t2, a0;       trigger MMIO exit
 //!             0x6f, 0x00, 0x00, 0x00, // j .;shouldn't get here, but if so loop forever
+//!         ];
+//!     }
+//!     #[cfg(target_arch = "loongarch64")]
+//!     {
+//!         asm_code = &[
+//!             0x0d, 0x00, 0x00, 0x18, // pcaddi t1, 0;    <this address> -> t1
+//!             0xae, 0x1d, 0x80, 0x29, // st.w t2, t1, 7;  dirty current page
+//!             0x8e, 0x00, 0x80, 0x29, // st.w t2, a0, 0;  trigger MMIO exit
+//!             0x00, 0x00, 0x00, 0x50, // b .;shouldn't get here, but if so loop forever
 //!         ];
 //!     }
 //!
@@ -189,6 +198,14 @@
 //!         vcpu_fd.set_one_reg(core_reg_base + 10, &mmio_addr.to_le_bytes());
 //!     }
 //!
+//!     #[cfg(target_arch = "loongarch64")]
+//!     {
+//!         let mut vcpu_regs = vcpu_fd.get_regs().unwrap();
+//!         vcpu_regs.pc = guest_addr;
+//!         vcpu_regs.gpr[4] = guest_addr + mem_size as u64;
+//!         vcpu_fd.set_regs(&vcpu_regs).unwrap();
+//!     }
+//!
 //!     // 6. Run code on the vCPU.
 //!     loop {
 //!         match vcpu_fd.run().expect("run failed") {
@@ -219,7 +236,11 @@
 //!                 // Since on aarch64 there is not halt instruction,
 //!                 // we break immediately after the last known instruction
 //!                 // of the asm code example so that we avoid an infinite loop.
-//!                 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+//!                 #[cfg(any(
+//!                     target_arch = "aarch64",
+//!                     target_arch = "riscv64",
+//!                     target_arch = "loongarch64"
+//!                 ))]
 //!                 break;
 //!             }
 //!             VcpuExit::Hlt => {

@@ -8,7 +8,7 @@
 #![allow(non_snake_case)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-#[cfg(feature = "fam-wrappers")]
+#[cfg(all(feature = "fam-wrappers", not(target_arch = "loongarch64")))]
 #[macro_use]
 extern crate vmm_sys_util;
 
@@ -36,3 +36,8 @@ pub use self::arm64::*;
 mod riscv64;
 #[cfg(target_arch = "riscv64")]
 pub use self::riscv64::*;
+
+#[cfg(target_arch = "loongarch64")]
+mod loongarch64;
+#[cfg(target_arch = "loongarch64")]
+pub use self::loongarch64::*;

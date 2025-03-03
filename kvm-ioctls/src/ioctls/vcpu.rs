@@ -20,7 +20,11 @@ use vmm_sys_util::ioctl::{ioctl, ioctl_with_mut_ref, ioctl_with_ref};
 use vmm_sys_util::ioctl::{ioctl_with_mut_ptr, ioctl_with_ptr, ioctl_with_val};
 
 /// Helper method to obtain the size of the register through its id
-#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+#[cfg(any(
+    target_arch = "aarch64",
+    target_arch = "riscv64",
+    target_arch = "loongarch64"
+))]
 pub fn reg_size(reg_id: u64) -> usize {
     2_usize.pow(((reg_id & KVM_REG_SIZE_MASK) >> KVM_REG_SIZE_SHIFT) as u32)
 }
@@ -337,7 +341,14 @@ impl VcpuFd {
     /// // Get the current vCPU registers.
     /// let mut regs = vcpu.get_regs().unwrap();
     /// // Set a new value for the Instruction Pointer.
+    /// # #[cfg(target_arch = "x86_64")]
+    /// # {
     /// regs.rip = 0x100;
+    /// # }
+    /// # #[cfg(target_arch = "loongarch64")]
+    /// # {
+    /// regs.pc = 0x100;
+    /// # }
     /// vcpu.set_regs(&regs).unwrap();
     /// ```
     #[cfg(not(any(target_arch = "aarch64", target_arch = "riscv64")))]
@@ -783,7 +794,8 @@ impl VcpuFd {
         target_arch = "x86_64",
         target_arch = "aarch64",
         target_arch = "riscv64",
-        target_arch = "s390x"
+        target_arch = "s390x",
+        target_arch = "loongarch64"
     ))]
     pub fn get_mp_state(&self) -> Result<kvm_mp_state> {
         let mut mp_state = Default::default();
@@ -820,7 +832,8 @@ impl VcpuFd {
         target_arch = "x86_64",
         target_arch = "aarch64",
         target_arch = "riscv64",
-        target_arch = "s390x"
+        target_arch = "s390x",
+        target_arch = "loongarch64",
     ))]
     pub fn set_mp_state(&self, mp_state: kvm_mp_state) -> Result<()> {
         // SAFETY: Here we trust the kernel not to read past the end of the kvm_mp_state struct.
@@ -1254,7 +1267,8 @@ impl VcpuFd {
         target_arch = "x86_64",
         target_arch = "aarch64",
         target_arch = "s390x",
-        target_arch = "powerpc"
+        target_arch = "powerpc",
+        target_arch = "loongarch64"
     ))]
     pub fn set_guest_debug(&self, debug_struct: &kvm_guest_debug) -> Result<()> {
         // SAFETY: Safe because we allocated the structure and we trust the kernel.
@@ -1279,7 +1293,11 @@ impl VcpuFd {
     ///
     /// `data` should be equal or bigger then the register size
     /// oterwise function will return EINVAL error
-    #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+    #[cfg(any(
+        target_arch = "aarch64",
+        target_arch = "riscv64",
+        target_arch = "loongarch64"
+    ))]
     pub fn set_one_reg(&self, reg_id: u64, data: &[u8]) -> Result<usize> {
         let reg_size = reg_size(reg_id);
         if data.len() < reg_size {
@@ -1311,7 +1329,11 @@ impl VcpuFd {
     ///
     /// `data` should be equal or bigger then the register size
     /// oterwise function will return EINVAL error
-    #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+    #[cfg(any(
+        target_arch = "aarch64",
+        target_arch = "riscv64",
+        target_arch = "loongarch64"
+    ))]
     pub fn get_one_reg(&self, reg_id: u64, data: &mut [u8]) -> Result<usize> {
         let reg_size = reg_size(reg_id);
         if data.len() < reg_size {
@@ -2205,7 +2227,8 @@ mod tests {
         target_arch = "x86_64",
         target_arch = "aarch64",
         target_arch = "riscv64",
-        target_arch = "s390x"
+        target_arch = "s390x",
+        target_arch = "loongarch64"
     ))]
     #[test]
     fn mpstate_test() {
@@ -2466,6 +2489,85 @@ mod tests {
         }
     }
 
+    #[cfg(target_arch = "loongarch64")]
+    #[test]
+    fn test_run_code() {
+        use std::io::Write;
+
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        #[rustfmt::skip]
+        let code = [
+            0x04, 0x14, 0x90, 0x03, // li.w a0, 0x0405;
+            0xe4, 0x02, 0x80, 0x29, // st.w a0, 0(s0);  test physical memory write
+            0x04, 0x03, 0x80, 0x28, // ld.w a0, 0(s1);  test MMIO read
+            0x05, 0x1c, 0x98, 0x03, // li.w a1, 0x0607;
+            0x05, 0x03, 0x80, 0x29, // st.w a1, 0(s1);  test MMIO write
+            0x00, 0x00, 0x00, 0x50, // b .; shouldn't get here, but if so loop forever
+        ];
+
+        let mem_size = 0x20000;
+        let load_addr = mmap_anonymous(mem_size).as_ptr();
+        let guest_addr: u64 = 0x10000;
+        let slot: u32 = 0;
+        let mem_region = kvm_userspace_memory_region {
+            slot,
+            guest_phys_addr: guest_addr,
+            memory_size: mem_size as u64,
+            userspace_addr: load_addr as u64,
+            flags: KVM_MEM_LOG_DIRTY_PAGES,
+        };
+        unsafe {
+            vm.set_user_memory_region(mem_region).unwrap();
+        }
+
+        unsafe {
+            // Get a mutable slice of `mem_size` from `load_addr`.
+            // This is safe because we mapped it before.
+            let mut slice = std::slice::from_raw_parts_mut(load_addr, mem_size);
+            slice.write_all(&code).unwrap();
+        }
+
+        let mut vcpu_fd = vm.create_vcpu(0).unwrap();
+        let mmio_addr: u64 = guest_addr + mem_size as u64;
+        let mut vcpu_regs = vcpu_fd.get_regs().unwrap();
+        vcpu_regs.pc = guest_addr;
+        vcpu_regs.gpr[23] = guest_addr + 0x10000 as u64;
+        vcpu_regs.gpr[24] = mmio_addr as u64;
+        vcpu_fd.set_regs(&vcpu_regs).unwrap();
+
+        loop {
+            match vcpu_fd.run().expect("run failed") {
+                VcpuExit::MmioRead(addr, data) => {
+                    assert_eq!(addr, mmio_addr);
+                    assert_eq!(data.len(), 4);
+                    data[3] = 0x0;
+                    data[2] = 0x0;
+                    data[1] = 0x5;
+                    data[0] = 0x6;
+                }
+                VcpuExit::MmioWrite(addr, data) => {
+                    assert_eq!(addr, mmio_addr);
+                    assert_eq!(data.len(), 4);
+                    assert_eq!(data[3], 0x0);
+                    assert_eq!(data[2], 0x0);
+                    assert_eq!(data[1], 0x6);
+                    assert_eq!(data[0], 0x7);
+                    // The code snippet dirties one page at guest_addr + 0x10000.
+                    // The code page should not be dirty, as it's not written by the guest.
+                    let dirty_pages_bitmap = vm.get_dirty_log(slot, mem_size).unwrap();
+                    let dirty_pages: u32 = dirty_pages_bitmap
+                        .into_iter()
+                        .map(|page| page.count_ones())
+                        .sum();
+                    assert_eq!(dirty_pages, 1);
+                    break;
+                }
+                r => panic!("unexpected exit reason: {:?}", r),
+            }
+        }
+    }
+
     #[cfg(target_arch = "x86_64")]
     #[test]
     fn test_run_code() {
@@ -2597,7 +2699,8 @@ mod tests {
     #[cfg(any(
         target_arch = "x86_64",
         target_arch = "aarch64",
-        target_arch = "riscv64"
+        target_arch = "riscv64",
+        target_arch = "loongarch64"
     ))]
     fn test_faulty_vcpu_fd() {
         use std::os::unix::io::{FromRawFd, IntoRawFd};
@@ -2913,6 +3016,45 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_arch = "loongarch64")]
+    fn test_faulty_vcpu_fd_loongarch64() {
+        use std::os::unix::io::{FromRawFd, IntoRawFd};
+
+        let badf_errno = libc::EBADF;
+
+        let faulty_vcpu_fd = VcpuFd {
+            vcpu: unsafe { File::from_raw_fd(-2) },
+            kvm_run_ptr: KvmRunWrapper {
+                kvm_run_ptr: mmap_anonymous(10).cast(),
+                mmap_size: 10,
+            },
+            coalesced_mmio_ring: None,
+        };
+
+        let reg_id = 0x9000_0000_0004_0000;
+        let mut reg_data = 0u128.to_le_bytes();
+
+        assert_eq!(
+            faulty_vcpu_fd
+                .set_one_reg(reg_id, &reg_data)
+                .unwrap_err()
+                .errno(),
+            badf_errno
+        );
+        assert_eq!(
+            faulty_vcpu_fd
+                .get_one_reg(reg_id, &mut reg_data)
+                .unwrap_err()
+                .errno(),
+            badf_errno
+        );
+
+        // Don't drop the File object, or it'll notice the file it's trying to close is
+        // invalid and abort the process.
+        let _ = faulty_vcpu_fd.vcpu.into_raw_fd();
+    }
+
+    #[test]
     #[cfg(target_arch = "aarch64")]
     fn test_get_preferred_target() {
         let kvm = Kvm::new().unwrap();
@@ -3091,6 +3233,52 @@ mod tests {
         // Test get a register list contains 200 registers explicitly
         let mut reg_list = RegList::new(200).unwrap();
         vcpu.get_reg_list(&mut reg_list).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_arch = "loongarch64")]
+    fn test_set_one_reg() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let vcpu = vm.create_vcpu(0).unwrap();
+
+        let data: u128 = 0;
+        let reg_id: u64 = 0;
+
+        vcpu.set_one_reg(reg_id, &data.to_le_bytes()).unwrap_err();
+        // Exercising KVM_SET_ONE_REG by trying to alter the data inside the
+        // CSR PRMD register.
+        // This regiseter is 64 bit wide (8 bytes).
+        const CSR_PRMD_REG_ID: u64 = 0x9030_0000_0001_0001;
+        vcpu.set_one_reg(CSR_PRMD_REG_ID, &data.to_le_bytes())
+            .expect("Failed to set CSR PRMD register");
+
+        // Trying to set 8 byte register with 7 bytes must fail.
+        vcpu.set_one_reg(CSR_PRMD_REG_ID, &[0_u8; 7]).unwrap_err();
+    }
+
+    #[test]
+    #[cfg(target_arch = "loongarch64")]
+    fn test_get_one_reg() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let vcpu = vm.create_vcpu(0).unwrap();
+
+        const PRESET: u64 = 0x7;
+        let data: u128 = PRESET as u128;
+        const CSR_PRMD_REG_ID: u64 = 0x9030_0000_0001_0001;
+        vcpu.set_one_reg(CSR_PRMD_REG_ID, &data.to_le_bytes())
+            .expect("Failed to set CSR PRMD register");
+
+        let mut bytes = [0_u8; 16];
+        vcpu.get_one_reg(CSR_PRMD_REG_ID, &mut bytes)
+            .expect("Failed to get CSR PRMD register");
+        let data = u128::from_le_bytes(bytes);
+        assert_eq!(data, PRESET as u128);
+
+        // Trying to get 8 byte register with 7 bytes must fail.
+        vcpu.get_one_reg(CSR_PRMD_REG_ID, &mut [0_u8; 7])
+            .unwrap_err();
     }
 
     #[test]

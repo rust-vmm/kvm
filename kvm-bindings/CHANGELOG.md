@@ -3,6 +3,8 @@
 
 ### Added
 
+- LoongArch KVM bindings for Linux kernel v6.13, including serialization support.
+
 ### Changed
 
 ### Removed

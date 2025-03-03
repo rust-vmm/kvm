@@ -2,6 +2,8 @@
 
 ## Upcoming Release
 
+- [[#307](https://github.com/rust-vmm/kvm/pull/307)]: Introduce `loongarch64` ioctls.
+
 ## v0.20.0
 
 ### Added 
