@@ -861,6 +861,61 @@ impl VcpuFd {
         Ok(xsave)
     }
 
+    /// X86 specific call that gets the current vcpu's "xsave struct" via `KVM_GET_XSAVE2`.
+    ///
+    /// See the documentation for `KVM_GET_XSAVE2` in the
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///
+    /// # Arguments
+    ///
+    /// * `xsave` - A mutable reference to an [`Xsave`] instance that will be populated with the
+    ///             current vcpu's "xsave struct".
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because there is no guarantee `xsave` is allocated with enough space
+    /// to hold the entire xsave state.
+    ///
+    /// The required size can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and can vary
+    /// depending on features that have been dynamically enabled by `arch_prctl()`. Thus, any
+    /// features must not be enabled dynamically after the required size has been confirmed.
+    ///
+    /// If `xsave` is not large enough, `KVM_GET_XSAVE2` copies data beyond the allocated area,
+    /// possibly causing undefined behavior.
+    ///
+    /// See the documentation for dynamically enabled XSTATE features in the
+    /// [kernel doc](https://docs.kernel.org/arch/x86/xstate.html).
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_ioctls;
+    /// # extern crate kvm_bindings;
+    /// # use kvm_ioctls::{Kvm, Cap};
+    /// # use kvm_bindings::{Xsave, kvm_xsave};
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let vcpu = vm.create_vcpu(0).unwrap();
+    /// let xsave_size = vm.check_extension_int(Cap::Xsave2);
+    /// if xsave_size > 0 {
+    ///     let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+    ///     let mut xsave = Xsave::new(fam_size).unwrap();
+    ///     unsafe { vcpu.get_xsave2(&mut xsave).unwrap() };
+    /// }
+    /// ```
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    pub unsafe fn get_xsave2(&self, xsave: &mut Xsave) -> Result<()> {
+        // SAFETY: Safe as long as `xsave` is allocated with enough space to hold the entire "xsave
+        // struct". That's why this function is unsafe.
+        let ret = unsafe {
+            ioctl_with_mut_ref(self, KVM_GET_XSAVE2(), &mut xsave.as_mut_fam_struct().xsave)
+        };
+        if ret != 0 {
+            return Err(errno::Error::last());
+        }
+        Ok(())
+    }
+
     /// X86 specific call that sets the vcpu's current "xsave struct".
     ///
     /// See the documentation for `KVM_SET_XSAVE` in the
@@ -890,6 +945,51 @@ impl VcpuFd {
             return Err(errno::Error::last());
         }
         Ok(())
+    }
+
+    /// Convenience function for doing `KVM_SET_XSAVE` with the FAM-enabled [`Xsave`]
+    /// instead of the pre-5.17 plain [`kvm_xsave`].
+    ///
+    /// # Arguments
+    ///
+    /// * `xsave` - A reference to an [`Xsave`] instance to be set.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because there is no guarantee `xsave` is properly allocated with
+    /// the size that KVM assumes.
+    ///
+    /// The required size can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and can vary
+    /// depending on features that have been dynamically enabled by `arch_prctl()`. Thus, any
+    /// features must not be enabled after the required size has been confirmed.
+    ///
+    /// If `xsave` is not large enough, `KVM_SET_XSAVE` copies data beyond the allocated area to
+    /// the kernel, possibly causing undefined behavior.
+    ///
+    /// See the documentation for dynamically enabled XSTATE features in the
+    /// [kernel doc](https://docs.kernel.org/arch/x86/xstate.html).
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_ioctls;
+    /// # extern crate kvm_bindings;
+    /// # use kvm_ioctls::{Kvm, Cap};
+    /// # use kvm_bindings::{Xsave, kvm_xsave};
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let vcpu = vm.create_vcpu(0).unwrap();
+    /// let xsave_size = vm.check_extension_int(Cap::Xsave2);
+    /// if xsave_size > 0 {
+    ///     let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+    ///     let xsave = Xsave::new(fam_size).unwrap();
+    ///     // Your `xsave` manipulation here.
+    ///     unsafe { vcpu.set_xsave2(&xsave).unwrap() };
+    /// }
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn set_xsave2(&self, xsave: &Xsave) -> Result<()> {
+        self.set_xsave(&xsave.as_fam_struct_ref().xsave)
     }
 
     /// X86 specific call that returns the vcpu's current "xcrs".
@@ -2228,6 +2328,21 @@ mod tests {
         vcpu.set_xsave(&xsave).unwrap();
         let other_xsave = vcpu.get_xsave().unwrap();
         assert_eq!(&xsave.region[..], &other_xsave.region[..]);
+
+        let xsave_size = vm.check_extension_int(Cap::Xsave2);
+        // only if KVM_CAP_XSAVE2 is supported
+        if xsave_size > 0 {
+            let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+            let mut xsave2 = Xsave::new(fam_size).unwrap();
+            // SAFETY: Safe because `xsave2` is allocated with enough space.
+            unsafe { vcpu.get_xsave2(&mut xsave2).unwrap() };
+            assert_eq!(
+                &xsave.region[..],
+                &xsave2.as_fam_struct_ref().xsave.region[..]
+            );
+            // SAFETY: Safe because `xsave2` is allocated with enough space.
+            unsafe { vcpu.set_xsave2(&xsave2).unwrap() };
+        }
     }
 
     #[cfg(target_arch = "x86_64")]
