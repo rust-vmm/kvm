@@ -923,7 +923,29 @@ impl VcpuFd {
     ///
     /// # Arguments
     ///
-    /// * `kvm_xsave` - xsave struct to be written.
+    /// * `xsave` - xsave struct to be written.
+    ///
+    /// # Safety
+    ///
+    /// The C `kvm_xsave` struct was extended to have a flexible array member (FAM) at the end in
+    /// Linux 5.17. The size can vary depending on features that have been dynamically enabled via
+    /// `arch_prctl()` and the required size can be retrieved via
+    /// `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)`. That means `KVM_SET_XSAVE` may copy data beyond the
+    /// size of the traditional C `kvm_xsave` struct (i.e. 4096 bytes) now.
+    ///
+    /// It is safe if used on Linux prior to 5.17, if no XSTATE features are enabled dynamically or
+    /// if the required size is still within the traditional 4096 bytes even with dynamically
+    /// enabled features. However, if any features are enabled dynamically, it is recommended to use
+    /// `set_xsave2()` instead.
+    ///
+    /// See the documentation for dynamically enabled XSTATE features in the
+    /// [kernel doc](https://docs.kernel.org/arch/x86/xstate.html).
+    ///
+    /// Theoretically, it can be made safe by checking which features are enabled in the bit vector
+    /// of the XSTATE header and validating the required size is less than or equal to 4096 bytes.
+    /// However, to do it properly, we would need to extract the XSTATE header from the `kvm_xsave`
+    /// struct, check enabled features, retrieve the required size for each enabled feature (like
+    /// `setup_xstate_cache()` do in Linux) and calculate the total size.
     ///
     /// # Example
     ///
@@ -935,10 +957,10 @@ impl VcpuFd {
     /// let vcpu = vm.create_vcpu(0).unwrap();
     /// let xsave = Default::default();
     /// // Your `xsave` manipulation here.
-    /// vcpu.set_xsave(&xsave).unwrap();
+    /// unsafe { vcpu.set_xsave(&xsave).unwrap() };
     /// ```
     #[cfg(target_arch = "x86_64")]
-    pub fn set_xsave(&self, xsave: &kvm_xsave) -> Result<()> {
+    pub unsafe fn set_xsave(&self, xsave: &kvm_xsave) -> Result<()> {
         // SAFETY: Here we trust the kernel not to read past the end of the kvm_xsave struct.
         let ret = unsafe { ioctl_with_ref(self, KVM_SET_XSAVE(), xsave) };
         if ret != 0 {
@@ -2325,7 +2347,8 @@ mod tests {
         let vm = kvm.create_vm().unwrap();
         let vcpu = vm.create_vcpu(0).unwrap();
         let xsave = vcpu.get_xsave().unwrap();
-        vcpu.set_xsave(&xsave).unwrap();
+        // SAFETY: Safe because no features are enabled dynamically and `xsave` is large enough.
+        unsafe { vcpu.set_xsave(&xsave).unwrap() };
         let other_xsave = vcpu.get_xsave().unwrap();
         assert_eq!(&xsave.region[..], &other_xsave.region[..]);
 
@@ -2844,10 +2867,13 @@ mod tests {
             badf_errno
         );
         assert_eq!(
-            faulty_vcpu_fd
-                .set_xsave(&kvm_xsave::default())
-                .unwrap_err()
-                .errno(),
+            // SAFETY: It fails before it copies data and any features are not enabled dynamically.
+            unsafe {
+                faulty_vcpu_fd
+                    .set_xsave(&kvm_xsave::default())
+                    .unwrap_err()
+                    .errno()
+            },
             badf_errno
         );
         assert_eq!(faulty_vcpu_fd.get_xcrs().unwrap_err().errno(), badf_errno);

@@ -7,6 +7,14 @@
 - [[#310](https://github.com/rust-vmm/kvm/pull/310)]: Added support for
   `KVM_CAP_XSAVE2` and the `KVM_GET_XSAVE2` ioctl.
 
+### Changed
+
+- [[#310](https://github.com/rust-vmm/kvm/pull/310)]: Changed `set_xsave()`
+  `unsafe` because the C `kvm_xsave` struct was extended to have a flexible
+  array member (FAM) in the end in Linux 5.16 and `KVM_SET_XSAVE` may copy data
+  beyond the traditional size (i.e. 4096 bytes). If any features are enabled
+  dynamically on Linux 5.16+, it is recommended to use `set_xsave2()` instead.
+
 ## v0.20.0
 
 ### Added
