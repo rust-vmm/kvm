@@ -2,11 +2,16 @@
 
 ## Upcoming Release
 
+### Added
+
+- [[#310](https://github.com/rust-vmm/kvm/pull/310)]: Added support for
+  `KVM_CAP_XSAVE2` and the `KVM_GET_XSAVE2` ioctl.
+
 ## v0.20.0
 
-### Added 
+### Added
 
-- [[#288](https://github.com/rust-vmm/kvm-ioctls/pull/288)]: Introduce `Cap::GuestMemfd`, `Cap::MemoryAttributes` and 
+- [[#288](https://github.com/rust-vmm/kvm-ioctls/pull/288)]: Introduce `Cap::GuestMemfd`, `Cap::MemoryAttributes` and
    `Cap::UserMemory2` capabilities enum variants for use with `VmFd::check_extension`.
 - [[#288](https://github.com/rust-vmm/kvm-ioctls/pull/288)]: Introduce `VmFd::check_extension_raw` and `VmFd::check_extension_int` to allow `KVM_CHECK_EXTENSION` to return integer.
 
