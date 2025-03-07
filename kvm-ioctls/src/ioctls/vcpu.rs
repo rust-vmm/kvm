@@ -876,9 +876,9 @@ impl VcpuFd {
     /// This function is unsafe because there is no guarantee `xsave` is allocated with enough space
     /// to hold the entire xsave state.
     ///
-    /// The required size can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and can vary
-    /// depending on features that have been dynamically enabled by `arch_prctl()`. Thus, any
-    /// features must not be enabled dynamically after the required size has been confirmed.
+    /// The required size in bytes can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and
+    /// can vary depending on features that have been dynamically enabled by `arch_prctl()`. Thus,
+    /// any features must not be enabled dynamically after the required size has been confirmed.
     ///
     /// If `xsave` is not large enough, `KVM_GET_XSAVE2` copies data beyond the allocated area,
     /// possibly causing undefined behavior.
@@ -891,14 +891,17 @@ impl VcpuFd {
     /// ```rust
     /// # extern crate kvm_ioctls;
     /// # extern crate kvm_bindings;
+    /// # extern crate vmm_sys_util;
     /// # use kvm_ioctls::{Kvm, Cap};
-    /// # use kvm_bindings::{Xsave, kvm_xsave};
+    /// # use kvm_bindings::{Xsave, kvm_xsave, kvm_xsave2};
+    /// # use vmm_sys_util::fam::FamStruct;
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let vcpu = vm.create_vcpu(0).unwrap();
     /// let xsave_size = vm.check_extension_int(Cap::Xsave2);
     /// if xsave_size > 0 {
-    ///     let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+    ///     let fam_size = (xsave_size as usize - std::mem::size_of::<kvm_xsave>())
+    ///         .div_ceil(std::mem::size_of::<<kvm_xsave2 as FamStruct>::Entry>());
     ///     let mut xsave = Xsave::new(fam_size).unwrap();
     ///     unsafe { vcpu.get_xsave2(&mut xsave).unwrap() };
     /// }
@@ -981,9 +984,9 @@ impl VcpuFd {
     /// This function is unsafe because there is no guarantee `xsave` is properly allocated with
     /// the size that KVM assumes.
     ///
-    /// The required size can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and can vary
-    /// depending on features that have been dynamically enabled by `arch_prctl()`. Thus, any
-    /// features must not be enabled after the required size has been confirmed.
+    /// The required size in bytes can be retrieved via `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` and
+    /// can vary depending on features that have been dynamically enabled by `arch_prctl()`. Thus,
+    /// any features must not be enabled after the required size has been confirmed.
     ///
     /// If `xsave` is not large enough, `KVM_SET_XSAVE` copies data beyond the allocated area to
     /// the kernel, possibly causing undefined behavior.
@@ -996,14 +999,17 @@ impl VcpuFd {
     /// ```rust
     /// # extern crate kvm_ioctls;
     /// # extern crate kvm_bindings;
+    /// # extern crate vmm_sys_util;
     /// # use kvm_ioctls::{Kvm, Cap};
-    /// # use kvm_bindings::{Xsave, kvm_xsave};
+    /// # use kvm_bindings::{Xsave, kvm_xsave, kvm_xsave2};
+    /// # use vmm_sys_util::fam::FamStruct;
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let vcpu = vm.create_vcpu(0).unwrap();
     /// let xsave_size = vm.check_extension_int(Cap::Xsave2);
     /// if xsave_size > 0 {
-    ///     let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+    ///     let fam_size = (xsave_size as usize - std::mem::size_of::<kvm_xsave>())
+    ///         .div_ceil(std::mem::size_of::<<kvm_xsave2 as FamStruct>::Entry>());
     ///     let xsave = Xsave::new(fam_size).unwrap();
     ///     // Your `xsave` manipulation here.
     ///     unsafe { vcpu.set_xsave2(&xsave).unwrap() };
@@ -2343,6 +2349,8 @@ mod tests {
     #[cfg(target_arch = "x86_64")]
     #[test]
     fn xsave_test() {
+        use vmm_sys_util::fam::FamStruct;
+
         let kvm = Kvm::new().unwrap();
         let vm = kvm.create_vm().unwrap();
         let vcpu = vm.create_vcpu(0).unwrap();
@@ -2355,7 +2363,8 @@ mod tests {
         let xsave_size = vm.check_extension_int(Cap::Xsave2);
         // only if KVM_CAP_XSAVE2 is supported
         if xsave_size > 0 {
-            let fam_size = xsave_size as usize - std::mem::size_of::<kvm_xsave>();
+            let fam_size = (xsave_size as usize - std::mem::size_of::<kvm_xsave>())
+                .div_ceil(std::mem::size_of::<<kvm_xsave2 as FamStruct>::Entry>());
             let mut xsave2 = Xsave::new(fam_size).unwrap();
             // SAFETY: Safe because `xsave2` is allocated with enough space.
             unsafe { vcpu.get_xsave2(&mut xsave2).unwrap() };
