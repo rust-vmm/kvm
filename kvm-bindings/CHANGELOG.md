@@ -3,6 +3,8 @@
 
 ### Added
 
+- Implemented `Serialize` / `Deserialize` for `kvm_xsave2`.
+
 ### Changed
 
 ### Removed
@@ -38,7 +40,7 @@
 
 ## [0.8.2]
 
-### Changed 
+### Changed
 
 - Improve performance of bindings deserialization by \~5% by avoiding
   a temporary allocation.
@@ -55,7 +57,7 @@
 ### Added
 
 - An opt-in feature `serde` that enables [`serde`](https://serde.rs)-based
-  (de)serialization of various bindings. 
+  (de)serialization of various bindings.
 
 ## [0.7.0]
 
@@ -80,7 +82,7 @@
 
 ### Added
 
-- Implement `PartialEq` for fam\_wrappers 
+- Implement `PartialEq` for fam\_wrappers
 
 ## [0.5.0]
 

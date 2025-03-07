@@ -7,6 +7,7 @@ use bindings::{
     kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment, kvm_sregs, kvm_vcpu_events,
     kvm_xcr, kvm_xcrs, kvm_xsave,
 };
+use fam_wrappers::kvm_xsave2;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, AsBytes, FromBytes, FromZeroes};
 
@@ -29,6 +30,7 @@ serde_impls!(
     kvm_msrs,
     kvm_cpuid2,
     kvm_xsave,
+    kvm_xsave2,
     kvm_irqchip
 );
 
@@ -118,6 +120,7 @@ mod tests {
         is_serde::<kvm_pit_state2>();
         is_serde::<kvm_vcpu_events>();
         is_serde::<kvm_debugregs>();
+        is_serde::<kvm_xsave2>();
         is_serde::<kvm_xcr>();
         is_serde::<kvm_xcrs>();
         is_serde::<kvm_irqchip>();
@@ -148,6 +151,7 @@ mod tests {
         is_serde_json::<kvm_pit_state2>();
         is_serde_json::<kvm_vcpu_events>();
         is_serde_json::<kvm_debugregs>();
+        is_serde_json::<kvm_xsave2>();
         is_serde_json::<kvm_xcr>();
         is_serde_json::<kvm_xcrs>();
         is_serde_json::<kvm_irqchip>();

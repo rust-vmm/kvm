@@ -99,6 +99,10 @@ pub type MsrList = FamStructWrapper<kvm_msr_list>;
 /// See also: [`Xsave`].
 #[repr(C)]
 #[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+)]
 pub struct kvm_xsave2 {
     /// The length, in bytes, of the FAM in [`kvm_xsave`].
     ///
