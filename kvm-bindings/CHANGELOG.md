@@ -1,13 +1,18 @@
 # Changelog
+
 ## [Unreleased]
 
 ### Added
 
-- Implemented `Serialize` / `Deserialize` for `kvm_xsave2`.
-
 ### Changed
 
 ### Removed
+
+## [0.11.1]
+
+### Added
+
+- Implemented `Serialize` / `Deserialize` for `kvm_xsave2`.
 
 ## [0.11.0]
 
