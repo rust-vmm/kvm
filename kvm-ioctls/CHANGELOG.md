@@ -2,6 +2,8 @@
 
 ## Upcoming Release
 
+## v0.21.0
+
 ### Added
 
 - [[#310](https://github.com/rust-vmm/kvm/pull/310)]: Added support for
