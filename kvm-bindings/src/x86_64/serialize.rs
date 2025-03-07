@@ -120,6 +120,7 @@ mod tests {
         is_serde::<kvm_pit_state2>();
         is_serde::<kvm_vcpu_events>();
         is_serde::<kvm_debugregs>();
+        is_serde::<kvm_xsave>();
         is_serde::<kvm_xsave2>();
         is_serde::<kvm_xcr>();
         is_serde::<kvm_xcrs>();
@@ -151,6 +152,7 @@ mod tests {
         is_serde_json::<kvm_pit_state2>();
         is_serde_json::<kvm_vcpu_events>();
         is_serde_json::<kvm_debugregs>();
+        is_serde_json::<kvm_xsave>();
         is_serde_json::<kvm_xsave2>();
         is_serde_json::<kvm_xcr>();
         is_serde_json::<kvm_xcrs>();
