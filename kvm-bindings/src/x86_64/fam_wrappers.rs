@@ -113,6 +113,12 @@ pub struct kvm_xsave2 {
     pub xsave: kvm_xsave,
 }
 
+impl From<kvm_xsave> for kvm_xsave2 {
+    fn from(xsave: kvm_xsave) -> Self {
+        kvm_xsave2 { len: 0, xsave }
+    }
+}
+
 // SAFETY:
 // - `kvm_xsave2` is a POD
 // - `kvm_xsave2` contains a flexible array member as its final field, due to `kvm_xsave` containing
