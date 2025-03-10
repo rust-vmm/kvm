@@ -104,11 +104,14 @@ pub type MsrList = FamStructWrapper<kvm_msr_list>;
     derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_xsave2 {
-    /// The length, in bytes, of the FAM in [`kvm_xsave`].
+    /// The length, in units of sizeof::<__u32>(), of the FAM in [`kvm_xsave`].
     ///
     /// Note that `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` returns the size of the entire
     /// `kvm_xsave` structure, e.g. the sum of header and FAM. Thus, this `len` field
-    /// is equal to `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2) - 4096`.
+    /// is equal to
+    /// ```norun
+    /// (KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2) - sizeof::<kvm_xsave>()).div_ceil(sizeof::<__u32>())
+    /// ```
     pub len: usize,
     pub xsave: kvm_xsave,
 }
