@@ -11,7 +11,7 @@ use fam_wrappers::kvm_xsave2;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, AsBytes, FromBytes, FromZeroes};
 
-serde_impls!(
+serde_impls! {
     kvm_regs,
     kvm_segment,
     kvm_dtable,
@@ -32,7 +32,7 @@ serde_impls!(
     kvm_xsave,
     kvm_xsave2,
     kvm_irqchip
-);
+}
 
 // SAFETY: zerocopy's derives explicitly disallow deriving for unions where
 // the fields have different sizes, due to the smaller fields having padding.
