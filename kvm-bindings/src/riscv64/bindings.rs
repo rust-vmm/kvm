@@ -596,7 +596,7 @@ pub type __poll_t = ::std::os::raw::c_uint;
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct user_regs_struct {
     pub pc: ::std::os::raw::c_ulong,
@@ -950,7 +950,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_config {
     pub isa: ::std::os::raw::c_ulong,
@@ -984,7 +984,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_core {
     pub regs: user_regs_struct,
@@ -1003,7 +1003,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_csr {
     pub sstatus: ::std::os::raw::c_ulong,
@@ -1045,7 +1045,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_aia_csr {
     pub siselect: ::std::os::raw::c_ulong,
@@ -1079,7 +1079,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_smstateen_csr {
     pub sstateen0: ::std::os::raw::c_ulong,
@@ -1096,7 +1096,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_timer {
     pub frequency: __u64,
@@ -1190,7 +1190,7 @@ pub type KVM_RISCV_SBI_EXT_ID = ::std::os::raw::c_uint;
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_riscv_sbi_sta {
     pub shmem_lo: ::std::os::raw::c_ulong,
@@ -2922,7 +2922,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_mp_state {
     pub mp_state: __u32,
@@ -3380,7 +3380,7 @@ const _: () = {
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 pub struct kvm_one_reg {
     pub id: __u64,

@@ -78,7 +78,7 @@ derive should be present:
 ```rs
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
 )]
 ```
 
