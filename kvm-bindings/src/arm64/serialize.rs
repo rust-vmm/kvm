@@ -19,12 +19,15 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {
-        let serialized = bincode::serialize(&T::default()).unwrap();
-        let deserialized = bincode::deserialize::<T>(serialized.as_ref()).unwrap();
-        let serialized_again = bincode::serialize(&deserialized).unwrap();
+        let config = bincode::config::standard();
+        let serialized = bincode::serde::encode_to_vec(T::default(), config).unwrap();
+        let deserialized: (T, _) = bincode::serde::decode_from_slice(&serialized, config).unwrap();
+        let serialized_again = bincode::serde::encode_to_vec(&deserialized, config).unwrap();
         // Compare the serialized state after a roundtrip, to work around issues with
         // bindings not implementing `PartialEq`.
-        assert_eq!(serialized, serialized_again);
+        // There some extra padding data at the end of re-serialized data, so we
+        // only compare the first `serialized.len()` bytes.
+        assert_eq!(serialized, serialized_again[..serialized.len()]);
     }
 
     #[test]
