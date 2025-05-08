@@ -3584,12 +3584,12 @@ mod tests {
             .as_slice()
             .iter()
             .find(|entry| entry.function == 1)
-            .map_or(false, |entry| entry.ecx & (1 << 5) != 0);
+            .is_some_and(|entry| entry.ecx & (1 << 5) != 0);
         let supports_vmmcall = cpuid
             .as_slice()
             .iter()
             .find(|entry| entry.function == 0x8000_0001)
-            .map_or(false, |entry| entry.ecx & (1 << 2) != 0);
+            .is_some_and(|entry| entry.ecx & (1 << 2) != 0);
         #[rustfmt::skip]
         let code = if supports_vmcall {
             [
