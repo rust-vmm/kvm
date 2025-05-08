@@ -3476,7 +3476,7 @@ mod tests {
         let mut kvi: kvm_vcpu_init = kvm_vcpu_init::default();
         vm.get_preferred_target(&mut kvi)
             .expect("Cannot get preferred target");
-        kvi.features[0] |= 1 << KVM_ARM_VCPU_PSCI_0_2 | 1 << KVM_ARM_VCPU_PMU_V3;
+        kvi.features[0] |= (1 << KVM_ARM_VCPU_PSCI_0_2) | (1 << KVM_ARM_VCPU_PMU_V3);
         vcpu.vcpu_init(&kvi).unwrap();
         vcpu.has_device_attr(&dist_attr).unwrap();
         vcpu.set_device_attr(&dist_attr).unwrap();
