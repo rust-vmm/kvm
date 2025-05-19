@@ -3476,7 +3476,7 @@ mod tests {
         let mut kvi: kvm_vcpu_init = kvm_vcpu_init::default();
         vm.get_preferred_target(&mut kvi)
             .expect("Cannot get preferred target");
-        kvi.features[0] |= 1 << KVM_ARM_VCPU_PSCI_0_2 | 1 << KVM_ARM_VCPU_PMU_V3;
+        kvi.features[0] |= (1 << KVM_ARM_VCPU_PSCI_0_2) | (1 << KVM_ARM_VCPU_PMU_V3);
         vcpu.vcpu_init(&kvi).unwrap();
         vcpu.has_device_attr(&dist_attr).unwrap();
         vcpu.set_device_attr(&dist_attr).unwrap();
@@ -3584,12 +3584,12 @@ mod tests {
             .as_slice()
             .iter()
             .find(|entry| entry.function == 1)
-            .map_or(false, |entry| entry.ecx & (1 << 5) != 0);
+            .is_some_and(|entry| entry.ecx & (1 << 5) != 0);
         let supports_vmmcall = cpuid
             .as_slice()
             .iter()
             .find(|entry| entry.function == 0x8000_0001)
-            .map_or(false, |entry| entry.ecx & (1 << 2) != 0);
+            .is_some_and(|entry| entry.ecx & (1 << 2) != 0);
         #[rustfmt::skip]
         let code = if supports_vmcall {
             [

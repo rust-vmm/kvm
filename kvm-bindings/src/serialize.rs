@@ -3,7 +3,7 @@
 //! Module containing serialization utilities
 
 /// Macro that generates serde::Serialize and serde::Deserialize implementations for the given types.
-/// This macro assumes that the types implement zerocopy::FromBytes and zerocopy::AsBytes, and uses
+/// This macro assumes that the types implement zerocopy::FromBytes and zerocopy::IntoBytes, and uses
 /// these implementations to serialize as opaque byte arrays. During deserialization, it will
 /// try to deserialize as a `Vec`. If this deserialized `Vec` has a length that equals `size_of::<T>`,
 /// it will transmute to `T` (using zerocopy), otherwise the `Vec` will either be zero-padded, or truncated.

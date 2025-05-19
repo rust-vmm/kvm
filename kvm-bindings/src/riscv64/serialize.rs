@@ -7,7 +7,7 @@ use bindings::{
     kvm_riscv_sbi_sta, kvm_riscv_smstateen_csr, kvm_riscv_timer, user_regs_struct,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, AsBytes};
+use zerocopy::{transmute, IntoBytes};
 
 serde_impls! {
     kvm_mp_state,
@@ -45,12 +45,12 @@ mod tests {
         //
         // #[cfg_attr(
         //     feature = "serde",
-        //     derive(zerocopy::AsBytes, zerocopy::FromBytes, zerocopy::FromZeroes)
+        //     derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
         // )]
         //
         // to all structures causing compilation errors (we need the zerocopy traits, as the
         // `Serialize` and `Deserialize` implementations are provided by the `serde_impls!` macro
-        // above, which implements serialization based on zerocopy's `FromBytes` and `AsBytes`
+        // above, which implements serialization based on zerocopy's `FromBytes` and `IntoBytes`
         // traits that it expects to be derived).
         //
         // NOTE: This only include "top-level" items, and does not list out bindgen-anonymous types
