@@ -165,4 +165,6 @@ pub enum Cap {
     UserMemory2 = KVM_CAP_USER_MEMORY2,
     GuestMemfd = KVM_CAP_GUEST_MEMFD,
     MemoryAttributes = KVM_CAP_MEMORY_ATTRIBUTES,
+    #[cfg(target_arch = "x86_64")]
+    NestedState = KVM_CAP_NESTED_STATE,
 }
