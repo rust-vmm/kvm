@@ -11,7 +11,7 @@ use bindings::{
 };
 use fam_wrappers::kvm_xsave2;
 use kvm_nested_state__bindgen_ty_1;
-use nested::{kvm_nested_state, kvm_nested_state__data};
+use nested::{kvm_nested_state__data, KvmNestedState};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, FromBytes, FromZeros, Immutable, IntoBytes};
 
@@ -38,7 +38,7 @@ serde_impls!(
     kvm_irqchip,
     kvm_irq_routing,
     kvm_irq_routing_entry,
-    kvm_nested_state
+    KvmNestedState
 );
 
 // SAFETY: zerocopy's derives explicitly disallow deriving for unions where
@@ -210,7 +210,7 @@ mod tests {
         is_serde::<kvm_mp_state>();
         is_serde::<kvm_irq_routing>();
         is_serde::<kvm_irq_routing_entry>();
-        is_serde::<nested::kvm_nested_state>();
+        is_serde::<nested::KvmNestedState>();
     }
 
     fn is_serde_json<T: Serialize + for<'de> Deserialize<'de> + Default>() {
@@ -245,6 +245,6 @@ mod tests {
         is_serde_json::<kvm_mp_state>();
         is_serde_json::<kvm_irq_routing>();
         is_serde_json::<kvm_irq_routing_entry>();
-        is_serde_json::<nested::kvm_nested_state>();
+        is_serde_json::<KvmNestedState>();
     }
 }

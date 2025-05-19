@@ -6,10 +6,10 @@ pub mod bindings;
 #[cfg(feature = "fam-wrappers")]
 pub mod fam_wrappers;
 
+pub mod nested;
+
 #[cfg(feature = "serde")]
 mod serialize;
-
-pub mod nested;
 
 pub use self::bindings::*;
 #[cfg(feature = "fam-wrappers")]
