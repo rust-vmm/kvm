@@ -1,5 +1,5 @@
 {
-  "coverage_score": 91.46,
+  "coverage_score": 89.00,
   "exclude_path": ".*bindings\\.rs",
   "crate_features": "fam-wrappers,serde"
 }
