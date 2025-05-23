@@ -4,3 +4,6 @@ members = [
     "kvm-bindings",
     "kvm-ioctls",
 ]
+
+[workspace.dependencies]
+vmm-sys-util = "0.14.0"
