@@ -8,6 +8,12 @@
 
 ### Removed
 
+## [0.11.2]
+
+### Added
+
+- [[320]](https://github.com/rust-vmm/kvm/pull/320) Upgrade vmm-sys-util to v0.13.0
+
 ## [0.11.1]
 
 ### Added
