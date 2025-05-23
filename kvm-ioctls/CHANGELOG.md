@@ -2,6 +2,12 @@
 
 ## Upcoming Release
 
+## v0.21.1
+
+### Changed
+
+- [[#320]](https://github.com/rust-vmm/kvm/pull/320) Upgrade vmm-sys-util to v0.13.0
+
 ## v0.21.0
 
 ### Added
