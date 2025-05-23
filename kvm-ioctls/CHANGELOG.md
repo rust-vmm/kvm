@@ -2,6 +2,13 @@
 
 ## Upcoming Release
 
+## v0.22.0
+
+### Changed
+
+- [[#324]](https://github.com/rust-vmm/kvm/pull/324) Upgrade kvm-bindings to v0.12.0
+- [[#323]](https://github.com/rust-vmm/kvm/pull/323) Upgrade vmm-sys-util to v0.14.0
+
 ## v0.21.0
 
 ### Added
