@@ -20,7 +20,7 @@ serde = ["dep:serde", "serde/derive", "dep:zerocopy"]
 
 
 [dependencies]
-vmm-sys-util = { version = "0.14.0", optional = true }
+vmm-sys-util = { workspace = true, optional = true }
 serde = { version = "1.0.0", optional = true, features = ["derive"] }
 zerocopy = { version = "0.8.23", optional = true, features = ["derive"] }
 
