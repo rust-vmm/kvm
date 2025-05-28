@@ -606,7 +606,7 @@ impl VmFd {
     /// # extern crate kvm_ioctls;
     /// extern crate kvm_bindings;
     /// # use kvm_ioctls::Kvm;
-    /// use kvm_bindings::kvm_irq_routing;
+    /// use kvm_bindings::KvmIrqRouting;
     ///
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
@@ -622,7 +622,7 @@ impl VmFd {
     /// })
     /// .expect("Cannot create KVM vAIA device.");
     ///
-    /// let irq_routing = kvm_irq_routing::default();
+    /// let irq_routing = KvmIrqRouting::new(0).unwrap();
     /// vm.set_gsi_routing(&irq_routing).unwrap();
     /// ```
     #[cfg(any(
@@ -630,10 +630,11 @@ impl VmFd {
         target_arch = "aarch64",
         target_arch = "riscv64"
     ))]
-    pub fn set_gsi_routing(&self, irq_routing: &kvm_irq_routing) -> Result<()> {
+    pub fn set_gsi_routing(&self, irq_routing: &KvmIrqRouting) -> Result<()> {
         // SAFETY: Safe because we allocated the structure and we know the kernel
         // will read exactly the size of the structure.
-        let ret = unsafe { ioctl_with_ref(self, KVM_SET_GSI_ROUTING(), irq_routing) };
+        let ret =
+            unsafe { ioctl_with_ref(self, KVM_SET_GSI_ROUTING(), irq_routing.as_fam_struct_ref()) };
         if ret == 0 {
             Ok(())
         } else {
@@ -2669,7 +2670,7 @@ mod tests {
     fn test_set_gsi_routing() {
         let kvm = Kvm::new().unwrap();
         let vm = kvm.create_vm().unwrap();
-        let irq_routing = kvm_irq_routing::default();
+        let irq_routing = KvmIrqRouting::new(0).unwrap();
 
         // Expect failure for x86 since the irqchip is not created yet.
         #[cfg(target_arch = "x86_64")]
