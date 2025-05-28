@@ -166,9 +166,9 @@ unsafe impl FamStruct for kvm_xsave2 {
 /// cannot happen in the [`FamStruct::len`] trait method. To work around this, we define a wrapper
 /// struct that caches the length of a previous `KVM_CHECK_EXTENSION(KVM_CAP_XSAVE2)` call,
 /// and implement [`FamStruct`] for this wrapper. Then in kvm-ioctls, we can expose a function
-/// that first queries `KVM_CAP_XSAVE2`, then invokes [`KVM_GET_XSAVE2`] to retrives the `kvm_xsave`
-/// structure, and finally combine them into the [`kvm_xsave2`] helper structure to be managed as a
-/// `FamStruct`.
+/// that first queries `KVM_CAP_XSAVE2`, then invokes [`KVM_GET_XSAVE2`] to retrieves the
+/// `kvm_xsave` structure, and finally combine them into the [`kvm_xsave2`] helper structure to be
+/// managed as a `FamStruct`.
 pub type Xsave = FamStructWrapper<kvm_xsave2>;
 
 #[cfg(test)]
