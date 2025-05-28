@@ -16,6 +16,11 @@
   array member (FAM) in the end in Linux 5.16 and `KVM_SET_XSAVE` may copy data
   beyond the traditional size (i.e. 4096 bytes). If any features are enabled
   dynamically on Linux 5.16+, it is recommended to use `set_xsave2()` instead.
+- [[#325]](https://github.com/rust-vmm/kvm/pull/325)]: Changed
+  `set_gsi_routing()` to use the newly created `KvmIrqRouting` type which is a
+  `FamStruct` wrapper over `kvm_irq_routing`. This way we can safely call the
+  `ioctl` without relying on the caller making sure the memory layout of
+  `kvm_irq_routing` is sane.
 
 ## v0.20.0
 
