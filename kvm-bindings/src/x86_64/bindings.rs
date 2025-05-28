@@ -4945,6 +4945,10 @@ impl Default for kvm_enable_cap {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_irqchip {
     pub irqchip: __u32,
     pub pin: __u32,
@@ -4961,6 +4965,10 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_msi {
     pub address_lo: __u32,
     pub address_hi: __u32,
@@ -4969,6 +4977,7 @@ pub struct kvm_irq_routing_msi {
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(zerocopy::Immutable, zerocopy::FromBytes))]
 pub union kvm_irq_routing_msi__bindgen_ty_1 {
     pub pad: __u32,
     pub devid: __u32,
@@ -5025,6 +5034,10 @@ impl ::std::fmt::Debug for kvm_irq_routing_msi {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_s390_adapter {
     pub ind_addr: __u64,
     pub summary_addr: __u64,
@@ -5051,6 +5064,10 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_hv_sint {
     pub vcpu: __u32,
     pub sint: __u32,
@@ -5067,6 +5084,10 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_xen_evtchn {
     pub port: __u32,
     pub vcpu: __u32,
@@ -5087,6 +5108,10 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing_entry {
     pub gsi: __u32,
     pub type_: __u32,
@@ -5096,6 +5121,7 @@ pub struct kvm_irq_routing_entry {
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(zerocopy::Immutable, zerocopy::FromBytes))]
 pub union kvm_irq_routing_entry__bindgen_ty_1 {
     pub irqchip: kvm_irq_routing_irqchip,
     pub msi: kvm_irq_routing_msi,
@@ -5172,6 +5198,10 @@ impl ::std::fmt::Debug for kvm_irq_routing_entry {
     }
 }
 #[repr(C)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_irq_routing {
     pub nr: __u32,
     pub flags: __u32,

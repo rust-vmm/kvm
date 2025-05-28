@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use bindings::{
-    kvm_mp_state, kvm_one_reg, kvm_riscv_aia_csr, kvm_riscv_config, kvm_riscv_core, kvm_riscv_csr,
-    kvm_riscv_sbi_sta, kvm_riscv_smstateen_csr, kvm_riscv_timer, user_regs_struct,
+    kvm_irq_routing, kvm_irq_routing_entry, kvm_irq_routing_entry__bindgen_ty_1,
+    kvm_irq_routing_msi__bindgen_ty_1, kvm_mp_state, kvm_one_reg, kvm_riscv_aia_csr,
+    kvm_riscv_config, kvm_riscv_core, kvm_riscv_csr, kvm_riscv_sbi_sta, kvm_riscv_smstateen_csr,
+    kvm_riscv_timer, user_regs_struct,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, IntoBytes};
@@ -19,7 +21,33 @@ serde_impls! {
     kvm_riscv_aia_csr,
     kvm_riscv_smstateen_csr,
     kvm_riscv_timer,
-    kvm_riscv_sbi_sta
+    kvm_riscv_sbi_sta,
+    kvm_irq_routing,
+    kvm_irq_routing_entry
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_msi__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
 }
 
 #[cfg(test)]
@@ -71,6 +99,8 @@ mod tests {
         is_serde::<kvm_riscv_smstateen_csr>();
         is_serde::<kvm_riscv_timer>();
         is_serde::<kvm_riscv_sbi_sta>();
+        is_serde::<kvm_irq_routing>();
+        is_serde::<kvm_irq_routing_entry>();
     }
 
     fn is_serde_json<T: Serialize + for<'de> Deserialize<'de> + Default>() {
@@ -96,5 +126,7 @@ mod tests {
         is_serde_json::<kvm_riscv_smstateen_csr>();
         is_serde_json::<kvm_riscv_timer>();
         is_serde_json::<kvm_riscv_sbi_sta>();
+        is_serde_json::<kvm_irq_routing>();
+        is_serde_json::<kvm_irq_routing_entry>();
     }
 }
