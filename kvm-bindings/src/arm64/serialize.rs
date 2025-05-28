@@ -1,5 +1,7 @@
 use bindings::{
-    kvm_mp_state, kvm_one_reg, kvm_regs, kvm_vcpu_init, user_fpsimd_state, user_pt_regs,
+    kvm_irq_routing, kvm_irq_routing_entry, kvm_irq_routing_entry__bindgen_ty_1,
+    kvm_irq_routing_msi__bindgen_ty_1, kvm_mp_state, kvm_one_reg, kvm_regs, kvm_vcpu_init,
+    user_fpsimd_state, user_pt_regs,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, IntoBytes};
@@ -10,7 +12,33 @@ serde_impls! {
     kvm_regs,
     kvm_vcpu_init,
     kvm_mp_state,
-    kvm_one_reg
+    kvm_one_reg,
+    kvm_irq_routing,
+    kvm_irq_routing_entry
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_msi__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
 }
 
 #[cfg(test)]
@@ -58,6 +86,8 @@ mod tests {
         is_serde::<kvm_vcpu_init>();
         is_serde::<kvm_mp_state>();
         is_serde::<kvm_one_reg>();
+        is_serde::<kvm_irq_routing>();
+        is_serde::<kvm_irq_routing_entry>();
     }
 
     fn is_serde_json<T: Serialize + for<'de> Deserialize<'de> + Default>() {
@@ -77,5 +107,7 @@ mod tests {
         is_serde_json::<kvm_vcpu_init>();
         is_serde_json::<kvm_mp_state>();
         is_serde_json::<kvm_one_reg>();
+        is_serde_json::<kvm_irq_routing>();
+        is_serde_json::<kvm_irq_routing_entry>();
     }
 }

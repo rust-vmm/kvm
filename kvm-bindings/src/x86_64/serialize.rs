@@ -3,9 +3,11 @@
 
 use bindings::{
     kvm_clock_data, kvm_cpuid2, kvm_cpuid_entry2, kvm_debugregs, kvm_dtable,
-    kvm_ioapic_state__bindgen_ty_1, kvm_irqchip, kvm_irqchip__bindgen_ty_1, kvm_lapic_state,
-    kvm_mp_state, kvm_msr_entry, kvm_msrs, kvm_pit_channel_state, kvm_pit_state2, kvm_regs,
-    kvm_segment, kvm_sregs, kvm_vcpu_events, kvm_xcr, kvm_xcrs, kvm_xsave,
+    kvm_ioapic_state__bindgen_ty_1, kvm_irq_routing, kvm_irq_routing_entry,
+    kvm_irq_routing_entry__bindgen_ty_1, kvm_irq_routing_msi__bindgen_ty_1, kvm_irqchip,
+    kvm_irqchip__bindgen_ty_1, kvm_lapic_state, kvm_mp_state, kvm_msr_entry, kvm_msrs,
+    kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment, kvm_sregs, kvm_vcpu_events,
+    kvm_xcr, kvm_xcrs, kvm_xsave,
 };
 use fam_wrappers::kvm_xsave2;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -31,7 +33,9 @@ serde_impls!(
     kvm_cpuid2,
     kvm_xsave,
     kvm_xsave2,
-    kvm_irqchip
+    kvm_irqchip,
+    kvm_irq_routing,
+    kvm_irq_routing_entry
 );
 
 // SAFETY: zerocopy's derives explicitly disallow deriving for unions where
@@ -87,6 +91,30 @@ unsafe impl IntoBytes for kvm_irqchip__bindgen_ty_1 {
 // Miri however does not complain about these implementations (e.g. about
 // reading the "padding" for one union field as valid data for a bigger one)
 unsafe impl Immutable for kvm_irqchip__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_msi__bindgen_ty_1 {
+    fn only_derive_is_allowed_to_implement_this_trait()
+    where
+        Self: Sized,
+    {
+    }
+}
+
+// SAFETY: zerocopy's derives explicitly disallow deriving for unions where
+// the fields have different sizes, due to the smaller fields having padding.
+// Miri however does not complain about these implementations (e.g. about
+// reading the "padding" for one union field as valid data for a bigger one)
+unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
     fn only_derive_is_allowed_to_implement_this_trait()
     where
         Self: Sized,
@@ -152,6 +180,8 @@ mod tests {
         is_serde::<kvm_xcrs>();
         is_serde::<kvm_irqchip>();
         is_serde::<kvm_mp_state>();
+        is_serde::<kvm_irq_routing>();
+        is_serde::<kvm_irq_routing_entry>();
     }
 
     fn is_serde_json<T: Serialize + for<'de> Deserialize<'de> + Default>() {
@@ -184,5 +214,7 @@ mod tests {
         is_serde_json::<kvm_xcrs>();
         is_serde_json::<kvm_irqchip>();
         is_serde_json::<kvm_mp_state>();
+        is_serde_json::<kvm_irq_routing>();
+        is_serde_json::<kvm_irq_routing_entry>();
     }
 }
