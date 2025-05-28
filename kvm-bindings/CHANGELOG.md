@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added FamStructWrapper for `kvm_irq_routing` type.
+- Added serde support for `kvm_irq_routing` and `kvm_irq_routing_entry` types.
+
 ### Changed
 
 ### Removed
