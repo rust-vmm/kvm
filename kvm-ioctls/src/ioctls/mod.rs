@@ -16,6 +16,8 @@ use vmm_sys_util::errno;
 
 /// Wrappers over KVM device ioctls.
 pub mod device;
+#[cfg(target_arch = "x86_64")]
+pub mod nested_state;
 /// Wrappers over KVM system ioctls.
 pub mod system;
 /// Wrappers over KVM VCPU ioctls.
