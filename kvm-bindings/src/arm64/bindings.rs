@@ -134,6 +134,22 @@ pub const HWCAP_SSBS: u32 = 268435456;
 pub const HWCAP_SB: u32 = 536870912;
 pub const HWCAP_PACA: u32 = 1073741824;
 pub const HWCAP_PACG: u32 = 2147483648;
+pub const HWCAP_GCS: u64 = 4294967296;
+pub const HWCAP_CMPBR: u64 = 8589934592;
+pub const HWCAP_FPRCVT: u64 = 17179869184;
+pub const HWCAP_F8MM8: u64 = 34359738368;
+pub const HWCAP_F8MM4: u64 = 68719476736;
+pub const HWCAP_SVE_F16MM: u64 = 137438953472;
+pub const HWCAP_SVE_ELTPERM: u64 = 274877906944;
+pub const HWCAP_SVE_AES2: u64 = 549755813888;
+pub const HWCAP_SVE_BFSCALE: u64 = 1099511627776;
+pub const HWCAP_SVE2P2: u64 = 2199023255552;
+pub const HWCAP_SME2P2: u64 = 4398046511104;
+pub const HWCAP_SME_SBITPERM: u64 = 8796093022208;
+pub const HWCAP_SME_AES: u64 = 17592186044416;
+pub const HWCAP_SME_SFEXPA: u64 = 35184372088832;
+pub const HWCAP_SME_STMOP: u64 = 70368744177664;
+pub const HWCAP_SME_SMOP4: u64 = 140737488355328;
 pub const HWCAP2_DCPODP: u32 = 1;
 pub const HWCAP2_SVE2: u32 = 2;
 pub const HWCAP2_SVEAES: u32 = 4;
@@ -197,6 +213,7 @@ pub const HWCAP2_SME_F8F32: u64 = 576460752303423488;
 pub const HWCAP2_SME_SF8FMA: u64 = 1152921504606846976;
 pub const HWCAP2_SME_SF8DP4: u64 = 2305843009213693952;
 pub const HWCAP2_SME_SF8DP2: u64 = 4611686018427387904;
+pub const HWCAP2_POE: i64 = -9223372036854775808;
 pub const __SVE_VQ_BYTES: u32 = 16;
 pub const __SVE_VQ_MIN: u32 = 1;
 pub const __SVE_VQ_MAX: u32 = 512;
@@ -276,6 +293,7 @@ pub const KVM_ARM_VCPU_SVE: u32 = 4;
 pub const KVM_ARM_VCPU_PTRAUTH_ADDRESS: u32 = 5;
 pub const KVM_ARM_VCPU_PTRAUTH_GENERIC: u32 = 6;
 pub const KVM_ARM_VCPU_HAS_EL2: u32 = 7;
+pub const KVM_ARM_VCPU_HAS_EL2_E2H0: u32 = 8;
 pub const KVM_ARM_MAX_DBG_REGS: u32 = 16;
 pub const KVM_DEBUG_ARCH_HSR_HIGH_VALID: u32 = 1;
 pub const KVM_GUESTDBG_USE_SW_BP: u32 = 65536;
@@ -348,6 +366,7 @@ pub const KVM_DEV_ARM_VGIC_GRP_REDIST_REGS: u32 = 5;
 pub const KVM_DEV_ARM_VGIC_GRP_CPU_SYSREGS: u32 = 6;
 pub const KVM_DEV_ARM_VGIC_GRP_LEVEL_INFO: u32 = 7;
 pub const KVM_DEV_ARM_VGIC_GRP_ITS_REGS: u32 = 8;
+pub const KVM_DEV_ARM_VGIC_GRP_MAINT_IRQ: u32 = 9;
 pub const KVM_DEV_ARM_VGIC_LINE_LEVEL_INFO_SHIFT: u32 = 10;
 pub const KVM_DEV_ARM_VGIC_LINE_LEVEL_INFO_MASK: u32 = 4294966272;
 pub const KVM_DEV_ARM_VGIC_LINE_LEVEL_INTID_MASK: u32 = 1023;
@@ -390,6 +409,7 @@ pub const KVM_PSCI_RET_NI: i32 = -1;
 pub const KVM_PSCI_RET_INVAL: i32 = -2;
 pub const KVM_PSCI_RET_DENIED: i32 = -3;
 pub const KVM_SYSTEM_EVENT_RESET_FLAG_PSCI_RESET2: u32 = 1;
+pub const KVM_SYSTEM_EVENT_SHUTDOWN_FLAG_PSCI_OFF2: u32 = 1;
 pub const KVM_EXIT_FAIL_ENTRY_CPU_UNSUPPORTED: u32 = 1;
 pub const KVM_HYPERCALL_EXIT_SMC: u32 = 1;
 pub const KVM_HYPERCALL_EXIT_16BIT: u32 = 2;
@@ -483,7 +503,6 @@ pub const KVM_X86_DISABLE_EXITS_MWAIT: u32 = 1;
 pub const KVM_X86_DISABLE_EXITS_HLT: u32 = 2;
 pub const KVM_X86_DISABLE_EXITS_PAUSE: u32 = 4;
 pub const KVM_X86_DISABLE_EXITS_CSTATE: u32 = 8;
-pub const KVM_X86_DISABLE_VALID_EXITS: u32 = 15;
 pub const KVMIO: u32 = 174;
 pub const KVM_VM_S390_UCONTROL: u32 = 1;
 pub const KVM_VM_PPC_HV: u32 = 1;
@@ -715,6 +734,10 @@ pub const KVM_CAP_MEMORY_FAULT_INFO: u32 = 232;
 pub const KVM_CAP_MEMORY_ATTRIBUTES: u32 = 233;
 pub const KVM_CAP_GUEST_MEMFD: u32 = 234;
 pub const KVM_CAP_VM_TYPES: u32 = 235;
+pub const KVM_CAP_PRE_FAULT_MEMORY: u32 = 236;
+pub const KVM_CAP_X86_APIC_BUS_CYCLES_NS: u32 = 237;
+pub const KVM_CAP_X86_GUEST_MODE: u32 = 238;
+pub const KVM_CAP_ARM_WRITABLE_IMP_ID_REGS: u32 = 239;
 pub const KVM_IRQ_ROUTING_IRQCHIP: u32 = 1;
 pub const KVM_IRQ_ROUTING_MSI: u32 = 2;
 pub const KVM_IRQ_ROUTING_S390_ADAPTER: u32 = 3;
@@ -1057,6 +1080,23 @@ const _: () = {
         [::std::mem::offset_of!(user_za_header, __reserved) - 14usize];
 };
 #[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct user_gcs {
+    pub features_enabled: __u64,
+    pub features_locked: __u64,
+    pub gcspr_el0: __u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of user_gcs"][::std::mem::size_of::<user_gcs>() - 24usize];
+    ["Alignment of user_gcs"][::std::mem::align_of::<user_gcs>() - 8usize];
+    ["Offset of field: user_gcs::features_enabled"]
+        [::std::mem::offset_of!(user_gcs, features_enabled) - 0usize];
+    ["Offset of field: user_gcs::features_locked"]
+        [::std::mem::offset_of!(user_gcs, features_locked) - 8usize];
+    ["Offset of field: user_gcs::gcspr_el0"][::std::mem::offset_of!(user_gcs, gcspr_el0) - 16usize];
+};
+#[repr(C)]
 #[repr(align(16))]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 #[cfg_attr(
@@ -1286,6 +1326,9 @@ pub type _bindgen_ty_2 = ::std::os::raw::c_uint;
 pub const KVM_REG_ARM_VENDOR_HYP_BIT_FUNC_FEAT: _bindgen_ty_3 = 0;
 pub const KVM_REG_ARM_VENDOR_HYP_BIT_PTP: _bindgen_ty_3 = 1;
 pub type _bindgen_ty_3 = ::std::os::raw::c_uint;
+pub const KVM_REG_ARM_VENDOR_HYP_BIT_DISCOVER_IMPL_VER: _bindgen_ty_4 = 0;
+pub const KVM_REG_ARM_VENDOR_HYP_BIT_DISCOVER_IMPL_CPUS: _bindgen_ty_4 = 1;
+pub type _bindgen_ty_4 = ::std::os::raw::c_uint;
 pub const kvm_smccc_filter_action_KVM_SMCCC_FILTER_HANDLE: kvm_smccc_filter_action = 0;
 pub const kvm_smccc_filter_action_KVM_SMCCC_FILTER_DENY: kvm_smccc_filter_action = 1;
 pub const kvm_smccc_filter_action_KVM_SMCCC_FILTER_FWD_TO_USER: kvm_smccc_filter_action = 2;
@@ -3076,13 +3119,13 @@ const _: () = {
     ["Offset of field: kvm_guest_debug::arch"]
         [::std::mem::offset_of!(kvm_guest_debug, arch) - 8usize];
 };
-pub const kvm_ioeventfd_flag_nr_datamatch: _bindgen_ty_4 = 0;
-pub const kvm_ioeventfd_flag_nr_pio: _bindgen_ty_4 = 1;
-pub const kvm_ioeventfd_flag_nr_deassign: _bindgen_ty_4 = 2;
-pub const kvm_ioeventfd_flag_nr_virtio_ccw_notify: _bindgen_ty_4 = 3;
-pub const kvm_ioeventfd_flag_nr_fast_mmio: _bindgen_ty_4 = 4;
-pub const kvm_ioeventfd_flag_nr_max: _bindgen_ty_4 = 5;
-pub type _bindgen_ty_4 = ::std::os::raw::c_uint;
+pub const kvm_ioeventfd_flag_nr_datamatch: _bindgen_ty_5 = 0;
+pub const kvm_ioeventfd_flag_nr_pio: _bindgen_ty_5 = 1;
+pub const kvm_ioeventfd_flag_nr_deassign: _bindgen_ty_5 = 2;
+pub const kvm_ioeventfd_flag_nr_virtio_ccw_notify: _bindgen_ty_5 = 3;
+pub const kvm_ioeventfd_flag_nr_fast_mmio: _bindgen_ty_5 = 4;
+pub const kvm_ioeventfd_flag_nr_max: _bindgen_ty_5 = 5;
+pub type _bindgen_ty_5 = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct kvm_ioeventfd {
@@ -3633,7 +3676,10 @@ pub const kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_ITS: kvm_device_type = 8;
 pub const kvm_device_type_KVM_DEV_TYPE_XIVE: kvm_device_type = 9;
 pub const kvm_device_type_KVM_DEV_TYPE_ARM_PV_TIME: kvm_device_type = 10;
 pub const kvm_device_type_KVM_DEV_TYPE_RISCV_AIA: kvm_device_type = 11;
-pub const kvm_device_type_KVM_DEV_TYPE_MAX: kvm_device_type = 12;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_IPI: kvm_device_type = 12;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_EIOINTC: kvm_device_type = 13;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_PCHPIC: kvm_device_type = 14;
+pub const kvm_device_type_KVM_DEV_TYPE_MAX: kvm_device_type = 15;
 pub type kvm_device_type = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -3778,5 +3824,26 @@ const _: () = {
         [::std::mem::offset_of!(kvm_create_guest_memfd, flags) - 8usize];
     ["Offset of field: kvm_create_guest_memfd::reserved"]
         [::std::mem::offset_of!(kvm_create_guest_memfd, reserved) - 16usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_pre_fault_memory {
+    pub gpa: __u64,
+    pub size: __u64,
+    pub flags: __u64,
+    pub padding: [__u64; 5usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_pre_fault_memory"][::std::mem::size_of::<kvm_pre_fault_memory>() - 64usize];
+    ["Alignment of kvm_pre_fault_memory"][::std::mem::align_of::<kvm_pre_fault_memory>() - 8usize];
+    ["Offset of field: kvm_pre_fault_memory::gpa"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, gpa) - 0usize];
+    ["Offset of field: kvm_pre_fault_memory::size"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, size) - 8usize];
+    ["Offset of field: kvm_pre_fault_memory::flags"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, flags) - 16usize];
+    ["Offset of field: kvm_pre_fault_memory::padding"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, padding) - 24usize];
 };
 pub type __uint128_t = u128;
