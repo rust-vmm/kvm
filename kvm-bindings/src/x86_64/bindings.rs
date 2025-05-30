@@ -213,6 +213,7 @@ pub const KVM_IRQCHIP_IOAPIC: u32 = 2;
 pub const KVM_NR_IRQCHIPS: u32 = 3;
 pub const KVM_RUN_X86_SMM: u32 = 1;
 pub const KVM_RUN_X86_BUS_LOCK: u32 = 2;
+pub const KVM_RUN_X86_GUEST_MODE: u32 = 4;
 pub const KVM_APIC_REG_SIZE: u32 = 1024;
 pub const KVM_SREGS2_FLAGS_PDPTRS_VALID: u32 = 1;
 pub const KVM_MSR_FILTER_MAX_BITMAP_SIZE: u32 = 1536;
@@ -253,6 +254,8 @@ pub const KVM_X86_QUIRK_OUT_7E_INC_RIP: u32 = 8;
 pub const KVM_X86_QUIRK_MISC_ENABLE_NO_MWAIT: u32 = 16;
 pub const KVM_X86_QUIRK_FIX_HYPERCALL_INSN: u32 = 32;
 pub const KVM_X86_QUIRK_MWAIT_NEVER_UD_FAULTS: u32 = 64;
+pub const KVM_X86_QUIRK_SLOT_ZAP_ALL: u32 = 128;
+pub const KVM_X86_QUIRK_STUFF_FEATURE_MSRS: u32 = 256;
 pub const KVM_STATE_NESTED_FORMAT_VMX: u32 = 0;
 pub const KVM_STATE_NESTED_FORMAT_SVM: u32 = 1;
 pub const KVM_STATE_NESTED_GUEST_MODE: u32 = 1;
@@ -265,7 +268,10 @@ pub const KVM_STATE_NESTED_SMM_VMXON: u32 = 2;
 pub const KVM_STATE_NESTED_VMX_VMCS_SIZE: u32 = 4096;
 pub const KVM_STATE_NESTED_SVM_VMCB_SIZE: u32 = 4096;
 pub const KVM_STATE_VMX_PREEMPTION_TIMER_DEADLINE: u32 = 1;
+pub const KVM_X86_GRP_SYSTEM: u32 = 0;
 pub const KVM_X86_XCOMP_GUEST_SUPP: u32 = 0;
+pub const KVM_X86_GRP_SEV: u32 = 1;
+pub const KVM_X86_SEV_VMSA_FEATURES: u32 = 0;
 pub const KVM_PMU_EVENT_ALLOW: u32 = 0;
 pub const KVM_PMU_EVENT_DENY: u32 = 1;
 pub const KVM_XEN_HVM_CONFIG_HYPERCALL_MSR: u32 = 1;
@@ -277,6 +283,8 @@ pub const KVM_XEN_HVM_CONFIG_EVTCHN_SEND: u32 = 32;
 pub const KVM_XEN_HVM_CONFIG_RUNSTATE_UPDATE_FLAG: u32 = 64;
 pub const KVM_XEN_HVM_CONFIG_PVCLOCK_TSC_UNSTABLE: u32 = 128;
 pub const KVM_XEN_HVM_CONFIG_SHARED_INFO_HVA: u32 = 256;
+pub const KVM_XEN_MSR_MIN_INDEX: u32 = 1073741824;
+pub const KVM_XEN_MSR_MAX_INDEX: u32 = 1342177279;
 pub const KVM_XEN_EVTCHN_DEASSIGN: u32 = 1;
 pub const KVM_XEN_EVTCHN_UPDATE: u32 = 2;
 pub const KVM_XEN_EVTCHN_RESET: u32 = 4;
@@ -297,6 +305,14 @@ pub const KVM_XEN_VCPU_ATTR_TYPE_VCPU_ID: u32 = 6;
 pub const KVM_XEN_VCPU_ATTR_TYPE_TIMER: u32 = 7;
 pub const KVM_XEN_VCPU_ATTR_TYPE_UPCALL_VECTOR: u32 = 8;
 pub const KVM_XEN_VCPU_ATTR_TYPE_VCPU_INFO_HVA: u32 = 9;
+pub const KVM_SEV_SNP_PAGE_TYPE_NORMAL: u32 = 1;
+pub const KVM_SEV_SNP_PAGE_TYPE_ZERO: u32 = 3;
+pub const KVM_SEV_SNP_PAGE_TYPE_UNMEASURED: u32 = 4;
+pub const KVM_SEV_SNP_PAGE_TYPE_SECRETS: u32 = 5;
+pub const KVM_SEV_SNP_PAGE_TYPE_CPUID: u32 = 6;
+pub const KVM_SEV_SNP_ID_BLOCK_SIZE: u32 = 96;
+pub const KVM_SEV_SNP_ID_AUTH_SIZE: u32 = 4096;
+pub const KVM_SEV_SNP_FINISH_DATA_SIZE: u32 = 32;
 pub const KVM_X2APIC_API_USE_32BIT_IDS: u32 = 1;
 pub const KVM_X2APIC_API_DISABLE_BROADCAST_QUIRK: u32 = 2;
 pub const KVM_HYPERV_CONN_ID_MASK: u32 = 16777215;
@@ -306,6 +322,10 @@ pub const KVM_VCPU_TSC_CTRL: u32 = 0;
 pub const KVM_VCPU_TSC_OFFSET: u32 = 0;
 pub const KVM_X86_DEFAULT_VM: u32 = 0;
 pub const KVM_X86_SW_PROTECTED_VM: u32 = 1;
+pub const KVM_X86_SEV_VM: u32 = 2;
+pub const KVM_X86_SEV_ES_VM: u32 = 3;
+pub const KVM_X86_SNP_VM: u32 = 4;
+pub const KVM_X86_TDX_VM: u32 = 5;
 pub const KVM_API_VERSION: u32 = 12;
 pub const KVM_MEM_LOG_DIRTY_PAGES: u32 = 1;
 pub const KVM_MEM_READONLY: u32 = 2;
@@ -394,7 +414,6 @@ pub const KVM_X86_DISABLE_EXITS_MWAIT: u32 = 1;
 pub const KVM_X86_DISABLE_EXITS_HLT: u32 = 2;
 pub const KVM_X86_DISABLE_EXITS_PAUSE: u32 = 4;
 pub const KVM_X86_DISABLE_EXITS_CSTATE: u32 = 8;
-pub const KVM_X86_DISABLE_VALID_EXITS: u32 = 15;
 pub const KVMIO: u32 = 174;
 pub const KVM_VM_S390_UCONTROL: u32 = 1;
 pub const KVM_VM_PPC_HV: u32 = 1;
@@ -634,6 +653,10 @@ pub const KVM_CAP_MEMORY_FAULT_INFO: u32 = 232;
 pub const KVM_CAP_MEMORY_ATTRIBUTES: u32 = 233;
 pub const KVM_CAP_GUEST_MEMFD: u32 = 234;
 pub const KVM_CAP_VM_TYPES: u32 = 235;
+pub const KVM_CAP_PRE_FAULT_MEMORY: u32 = 236;
+pub const KVM_CAP_X86_APIC_BUS_CYCLES_NS: u32 = 237;
+pub const KVM_CAP_X86_GUEST_MODE: u32 = 238;
+pub const KVM_CAP_ARM_WRITABLE_IMP_ID_REGS: u32 = 239;
 pub const KVM_IRQ_ROUTING_IRQCHIP: u32 = 1;
 pub const KVM_IRQ_ROUTING_MSI: u32 = 2;
 pub const KVM_IRQ_ROUTING_S390_ADAPTER: u32 = 3;
@@ -2746,7 +2769,11 @@ pub const sev_cmd_id_KVM_SEV_DBG_ENCRYPT: sev_cmd_id = 18;
 pub const sev_cmd_id_KVM_SEV_CERT_EXPORT: sev_cmd_id = 19;
 pub const sev_cmd_id_KVM_SEV_GET_ATTESTATION_REPORT: sev_cmd_id = 20;
 pub const sev_cmd_id_KVM_SEV_SEND_CANCEL: sev_cmd_id = 21;
-pub const sev_cmd_id_KVM_SEV_NR_MAX: sev_cmd_id = 22;
+pub const sev_cmd_id_KVM_SEV_INIT2: sev_cmd_id = 22;
+pub const sev_cmd_id_KVM_SEV_SNP_LAUNCH_START: sev_cmd_id = 100;
+pub const sev_cmd_id_KVM_SEV_SNP_LAUNCH_UPDATE: sev_cmd_id = 101;
+pub const sev_cmd_id_KVM_SEV_SNP_LAUNCH_FINISH: sev_cmd_id = 102;
+pub const sev_cmd_id_KVM_SEV_NR_MAX: sev_cmd_id = 103;
 pub type sev_cmd_id = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -2766,6 +2793,27 @@ const _: () = {
     ["Offset of field: kvm_sev_cmd::data"][::std::mem::offset_of!(kvm_sev_cmd, data) - 8usize];
     ["Offset of field: kvm_sev_cmd::error"][::std::mem::offset_of!(kvm_sev_cmd, error) - 16usize];
     ["Offset of field: kvm_sev_cmd::sev_fd"][::std::mem::offset_of!(kvm_sev_cmd, sev_fd) - 20usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_sev_init {
+    pub vmsa_features: __u64,
+    pub flags: __u32,
+    pub ghcb_version: __u16,
+    pub pad1: __u16,
+    pub pad2: [__u32; 8usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_sev_init"][::std::mem::size_of::<kvm_sev_init>() - 48usize];
+    ["Alignment of kvm_sev_init"][::std::mem::align_of::<kvm_sev_init>() - 8usize];
+    ["Offset of field: kvm_sev_init::vmsa_features"]
+        [::std::mem::offset_of!(kvm_sev_init, vmsa_features) - 0usize];
+    ["Offset of field: kvm_sev_init::flags"][::std::mem::offset_of!(kvm_sev_init, flags) - 8usize];
+    ["Offset of field: kvm_sev_init::ghcb_version"]
+        [::std::mem::offset_of!(kvm_sev_init, ghcb_version) - 12usize];
+    ["Offset of field: kvm_sev_init::pad1"][::std::mem::offset_of!(kvm_sev_init, pad1) - 14usize];
+    ["Offset of field: kvm_sev_init::pad2"][::std::mem::offset_of!(kvm_sev_init, pad2) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -3096,6 +3144,105 @@ const _: () = {
         [::std::mem::offset_of!(kvm_sev_receive_update_data, trans_len) - 40usize];
     ["Offset of field: kvm_sev_receive_update_data::pad2"]
         [::std::mem::offset_of!(kvm_sev_receive_update_data, pad2) - 44usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_sev_snp_launch_start {
+    pub policy: __u64,
+    pub gosvw: [__u8; 16usize],
+    pub flags: __u16,
+    pub pad0: [__u8; 6usize],
+    pub pad1: [__u64; 4usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_sev_snp_launch_start"]
+        [::std::mem::size_of::<kvm_sev_snp_launch_start>() - 64usize];
+    ["Alignment of kvm_sev_snp_launch_start"]
+        [::std::mem::align_of::<kvm_sev_snp_launch_start>() - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_start::policy"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_start, policy) - 0usize];
+    ["Offset of field: kvm_sev_snp_launch_start::gosvw"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_start, gosvw) - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_start::flags"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_start, flags) - 24usize];
+    ["Offset of field: kvm_sev_snp_launch_start::pad0"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_start, pad0) - 26usize];
+    ["Offset of field: kvm_sev_snp_launch_start::pad1"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_start, pad1) - 32usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_sev_snp_launch_update {
+    pub gfn_start: __u64,
+    pub uaddr: __u64,
+    pub len: __u64,
+    pub type_: __u8,
+    pub pad0: __u8,
+    pub flags: __u16,
+    pub pad1: __u32,
+    pub pad2: [__u64; 4usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_sev_snp_launch_update"]
+        [::std::mem::size_of::<kvm_sev_snp_launch_update>() - 64usize];
+    ["Alignment of kvm_sev_snp_launch_update"]
+        [::std::mem::align_of::<kvm_sev_snp_launch_update>() - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_update::gfn_start"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, gfn_start) - 0usize];
+    ["Offset of field: kvm_sev_snp_launch_update::uaddr"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, uaddr) - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_update::len"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, len) - 16usize];
+    ["Offset of field: kvm_sev_snp_launch_update::type_"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, type_) - 24usize];
+    ["Offset of field: kvm_sev_snp_launch_update::pad0"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, pad0) - 25usize];
+    ["Offset of field: kvm_sev_snp_launch_update::flags"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, flags) - 26usize];
+    ["Offset of field: kvm_sev_snp_launch_update::pad1"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, pad1) - 28usize];
+    ["Offset of field: kvm_sev_snp_launch_update::pad2"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_update, pad2) - 32usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_sev_snp_launch_finish {
+    pub id_block_uaddr: __u64,
+    pub id_auth_uaddr: __u64,
+    pub id_block_en: __u8,
+    pub auth_key_en: __u8,
+    pub vcek_disabled: __u8,
+    pub host_data: [__u8; 32usize],
+    pub pad0: [__u8; 3usize],
+    pub flags: __u16,
+    pub pad1: [__u64; 4usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_sev_snp_launch_finish"]
+        [::std::mem::size_of::<kvm_sev_snp_launch_finish>() - 88usize];
+    ["Alignment of kvm_sev_snp_launch_finish"]
+        [::std::mem::align_of::<kvm_sev_snp_launch_finish>() - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::id_block_uaddr"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, id_block_uaddr) - 0usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::id_auth_uaddr"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, id_auth_uaddr) - 8usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::id_block_en"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, id_block_en) - 16usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::auth_key_en"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, auth_key_en) - 17usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::vcek_disabled"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, vcek_disabled) - 18usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::host_data"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, host_data) - 19usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::pad0"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, pad0) - 51usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::flags"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, flags) - 54usize];
+    ["Offset of field: kvm_sev_snp_launch_finish::pad1"]
+        [::std::mem::offset_of!(kvm_sev_snp_launch_finish, pad1) - 56usize];
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -5433,7 +5580,10 @@ pub const kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_ITS: kvm_device_type = 8;
 pub const kvm_device_type_KVM_DEV_TYPE_XIVE: kvm_device_type = 9;
 pub const kvm_device_type_KVM_DEV_TYPE_ARM_PV_TIME: kvm_device_type = 10;
 pub const kvm_device_type_KVM_DEV_TYPE_RISCV_AIA: kvm_device_type = 11;
-pub const kvm_device_type_KVM_DEV_TYPE_MAX: kvm_device_type = 12;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_IPI: kvm_device_type = 12;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_EIOINTC: kvm_device_type = 13;
+pub const kvm_device_type_KVM_DEV_TYPE_LOONGARCH_PCHPIC: kvm_device_type = 14;
+pub const kvm_device_type_KVM_DEV_TYPE_MAX: kvm_device_type = 15;
 pub type kvm_device_type = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -5578,4 +5728,25 @@ const _: () = {
         [::std::mem::offset_of!(kvm_create_guest_memfd, flags) - 8usize];
     ["Offset of field: kvm_create_guest_memfd::reserved"]
         [::std::mem::offset_of!(kvm_create_guest_memfd, reserved) - 16usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct kvm_pre_fault_memory {
+    pub gpa: __u64,
+    pub size: __u64,
+    pub flags: __u64,
+    pub padding: [__u64; 5usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_pre_fault_memory"][::std::mem::size_of::<kvm_pre_fault_memory>() - 64usize];
+    ["Alignment of kvm_pre_fault_memory"][::std::mem::align_of::<kvm_pre_fault_memory>() - 8usize];
+    ["Offset of field: kvm_pre_fault_memory::gpa"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, gpa) - 0usize];
+    ["Offset of field: kvm_pre_fault_memory::size"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, size) - 8usize];
+    ["Offset of field: kvm_pre_fault_memory::flags"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, flags) - 16usize];
+    ["Offset of field: kvm_pre_fault_memory::padding"]
+        [::std::mem::offset_of!(kvm_pre_fault_memory, padding) - 24usize];
 };
