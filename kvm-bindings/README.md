@@ -1,4 +1,4 @@
-[![Crates.io](https://img.shields.io/crates/v/kvm-bindings.svg)]
+![Crates.io](https://img.shields.io/crates/v/kvm-bindings.svg)
 # kvm-bindings
 Rust FFI bindings to KVM, generated using
 [bindgen](https://crates.io/crates/bindgen). It currently has support for the
