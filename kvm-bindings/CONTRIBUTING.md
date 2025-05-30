@@ -11,10 +11,11 @@ cargo install bindgen-cli --vers 0.70.1
 
 ### Linux Kernel
 Generating bindings depends on the Linux kernel, so you need to have the
-repository on your machine:
+repository on your machine. Replace `v6.9` with the kernel release for
+which you wish to generate bindings:
 
 ```bash
-git clone https://github.com/torvalds/linux.git
+git clone https://github.com/torvalds/linux.git --branch v6.9 --depth 1
 ```
 
 ## Updating bindings / adding a new architecture
@@ -33,12 +34,9 @@ pushd kvm-bindings
 mkdir src/arm64
 popd
 
-# linux is the repository that you cloned at the previous step.
 pushd linux
-# Step 2: Checkout the version you want to generate the bindings for.
-git checkout v6.9
 
-# Step 3: Generate the bindings.
+# Step 2: Generate the bindings.
 # This will generate the headers for the targeted architecture and place them
 # in the user specified directory
 
@@ -51,13 +49,13 @@ bindgen include/linux/kvm.h -o bindings.rs  \
      -- -Iinclude
 popd
 
-# Step 4: Copy the generated file to the arm64 module.
+# Step 3: Copy the generated file to the arm64 module.
 popd
 cp linux/"$ARCH"_headers/bindings.rs kvm-bindings/src/arm64
 
 ```
 
-Steps 2, 3 and 4 must be repeated for all existing architectures.
+Steps 2 and 3 must be repeated for all existing architectures.
 
 Now that we have the bindings generated, for a new architecture we can copy the
 module file from one of the existing modules.
