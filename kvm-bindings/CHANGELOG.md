@@ -6,6 +6,8 @@
 
 ### Changed
 
+- Regenerate bindings from Linux kernel v6.15.
+
 ### Removed
 
 ## [0.12.0]
