@@ -75,6 +75,8 @@ pub struct KvmNestedState {
     pub size: u32,
     pub hdr: kvm_nested_state__bindgen_ty_1,
     pub data: kvm_nested_state__data,
+    // Prevent constructor bypass in public API.
+    _priv: core::marker::PhantomData<()>,
 }
 
 impl KvmNestedState {
