@@ -18,6 +18,8 @@ extern crate serde;
 #[cfg(feature = "serde")]
 extern crate zerocopy;
 
+extern crate core;
+
 #[cfg(feature = "serde")]
 #[macro_use]
 mod serialize;
