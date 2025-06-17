@@ -3,7 +3,7 @@
 
 use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
 
-use x86_64::bindings::*;
+use crate::x86_64::bindings::*;
 
 /// Maximum number of CPUID entries that can be returned by a call to KVM ioctls.
 ///
@@ -202,7 +202,7 @@ mod tests {
     use crate::KvmIrqRouting;
 
     use super::{CpuId, MsrList, Msrs, Xsave};
-    use x86_64::bindings::kvm_cpuid_entry2;
+    use crate::x86_64::bindings::kvm_cpuid_entry2;
 
     use vmm_sys_util::fam::FamStruct;
 
