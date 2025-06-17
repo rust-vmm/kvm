@@ -9,9 +9,9 @@ use bindings::{
     kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment, kvm_sregs, kvm_vcpu_events,
     kvm_xcr, kvm_xcrs, kvm_xsave,
 };
-use fam_wrappers::kvm_xsave2;
-use kvm_nested_state__bindgen_ty_1;
-use nested::{kvm_nested_state__data, KvmNestedStateBuffer};
+use crate::fam_wrappers::kvm_xsave2;
+use crate::kvm_nested_state__bindgen_ty_1;
+use crate::nested::{kvm_nested_state__data, KvmNestedStateBuffer};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zerocopy::{transmute, FromBytes, FromZeros, Immutable, IntoBytes};
 
@@ -152,7 +152,7 @@ unsafe impl IntoBytes for kvm_nested_state__data {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bindings::*;
+    use crate::bindings::*;
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {
         let config = bincode::config::standard();

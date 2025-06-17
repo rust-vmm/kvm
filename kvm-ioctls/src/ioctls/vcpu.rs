@@ -1024,7 +1024,7 @@ impl VcpuFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn set_xsave2(&self, xsave: &Xsave) -> Result<()> {
-        self.set_xsave(&xsave.as_fam_struct_ref().xsave)
+        unsafe {self.set_xsave(&xsave.as_fam_struct_ref().xsave)}
     }
 
     /// X86 specific call that returns the vcpu's current "xcrs".

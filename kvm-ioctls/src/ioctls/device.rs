@@ -164,7 +164,7 @@ impl DeviceFd {
     pub unsafe fn get_device_attr(&self, device_attr: &mut kvm_device_attr) -> Result<()> {
         // SAFETY: Caller has ensured device_attr.addr is safe to write to.
         // We are calling this function with a Device fd,  we trust the kernel.
-        let ret = ioctl_with_mut_ref(self, KVM_GET_DEVICE_ATTR(), device_attr);
+        let ret = unsafe {ioctl_with_mut_ref(self, KVM_GET_DEVICE_ATTR(), device_attr)};
         if ret != 0 {
             return Err(errno::Error::last());
         }
@@ -192,7 +192,7 @@ impl FromRawFd for DeviceFd {
     /// that relies on it being true.
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         DeviceFd {
-            fd: File::from_raw_fd(fd),
+            fd: unsafe {File::from_raw_fd(fd)},
         }
     }
 }

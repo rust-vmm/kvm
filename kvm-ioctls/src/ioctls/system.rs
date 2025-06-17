@@ -680,7 +680,7 @@ impl Kvm {
     /// ```
     pub unsafe fn create_vmfd_from_rawfd(&self, fd: RawFd) -> Result<VmFd> {
         let run_mmap_size = self.get_vcpu_mmap_size()?;
-        Ok(new_vmfd(File::from_raw_fd(fd), run_mmap_size))
+        Ok(new_vmfd(unsafe {File::from_raw_fd(fd)}, run_mmap_size))
     }
 }
 
@@ -720,7 +720,7 @@ impl FromRawFd for Kvm {
     /// ```
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         Kvm {
-            kvm: File::from_raw_fd(fd),
+            kvm: unsafe {File::from_raw_fd(fd)},
         }
     }
 }

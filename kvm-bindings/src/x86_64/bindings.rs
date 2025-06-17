@@ -106,11 +106,11 @@ impl<T> __IncompleteArrayField<T> {
     }
     #[inline]
     pub unsafe fn as_slice(&self, len: usize) -> &[T] {
-        ::std::slice::from_raw_parts(self.as_ptr(), len)
+        unsafe {::std::slice::from_raw_parts(self.as_ptr(), len)}
     }
     #[inline]
     pub unsafe fn as_mut_slice(&mut self, len: usize) -> &mut [T] {
-        ::std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
+        unsafe {::std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)}
     }
 }
 impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
@@ -127,11 +127,11 @@ impl<T> __BindgenUnionField<T> {
     }
     #[inline]
     pub unsafe fn as_ref(&self) -> &T {
-        ::std::mem::transmute(self)
+        unsafe {::std::mem::transmute(self)}
     }
     #[inline]
     pub unsafe fn as_mut(&mut self) -> &mut T {
-        ::std::mem::transmute(self)
+        unsafe {::std::mem::transmute(self)}
     }
 }
 impl<T> ::std::default::Default for __BindgenUnionField<T> {
@@ -3408,7 +3408,7 @@ impl ::std::fmt::Debug for kvm_irq_level {
 #[derive(Copy, Clone)]
 #[cfg_attr(
     feature = "serde",
-    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+    derive(zerocopy::IntoBytes, zerocopy::Immutable)
 )]
 pub struct kvm_irqchip {
     pub chip_id: __u32,
@@ -3417,7 +3417,7 @@ pub struct kvm_irqchip {
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
-#[cfg_attr(feature = "serde", derive(zerocopy::TryFromBytes))]
+#[cfg_attr(feature = "serde", derive(zerocopy::TryFromBytes, zerocopy::FromBytes))]
 pub union kvm_irqchip__bindgen_ty_1 {
     pub dummy: [::std::os::raw::c_char; 512usize],
     pub pic: kvm_pic_state,
