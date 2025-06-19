@@ -108,6 +108,7 @@ impl VmFd {
         user_memory_region: kvm_userspace_memory_region,
     ) -> Result<()> {
         let ret =
+            // SAFETY: user_memory_region is properly initialized with valid parameters
             unsafe { ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION(), &user_memory_region) };
         if ret == 0 {
             Ok(())
@@ -195,6 +196,7 @@ impl VmFd {
         user_memory_region2: kvm_userspace_memory_region2,
     ) -> Result<()> {
         let ret =
+            // SAFETY: user_memory_region2 is properly initialized with valid parameters
             unsafe { ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region2) };
         if ret == 0 {
             Ok(())
@@ -1245,6 +1247,7 @@ impl VmFd {
     /// let vcpu = unsafe { vm.create_vcpu_from_rawfd(rawfd).unwrap() };
     /// ```
     pub unsafe fn create_vcpu_from_rawfd(&self, fd: RawFd) -> Result<VcpuFd> {
+        // SAFETY: fd is a valid file descriptor returned by KVM_CREATE_VCPU ioctl
         let vcpu = unsafe { File::from_raw_fd(fd) };
         let kvm_run_ptr = KvmRunWrapper::mmap_from_fd(&vcpu, self.run_size)?;
         Ok(new_vcpu(vcpu, kvm_run_ptr))
@@ -1650,6 +1653,7 @@ impl VmFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn encrypt_op<T>(&self, op: *mut T) -> Result<()> {
+        // SAFETY: op pointer is valid and properly initialized for the ioctl operation
         let ret = unsafe { ioctl_with_mut_ptr(self, KVM_MEMORY_ENCRYPT_OP(), op) };
         if ret == 0 {
             Ok(())

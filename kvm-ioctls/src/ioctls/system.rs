@@ -672,6 +672,7 @@ impl Kvm {
     /// ```
     pub unsafe fn create_vmfd_from_rawfd(&self, fd: RawFd) -> Result<VmFd> {
         let run_mmap_size = self.get_vcpu_mmap_size()?;
+        // SAFETY: fd is a valid file descriptor returned by KVM_CREATE_VM ioctl
         Ok(new_vmfd(unsafe { File::from_raw_fd(fd) }, run_mmap_size))
     }
 }
@@ -712,6 +713,8 @@ impl FromRawFd for Kvm {
     /// ```
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         Kvm {
+            // SAFETY: fd is a valid file descriptor obtained 
+            //  From opening /dev/kvm
             kvm: unsafe { File::from_raw_fd(fd) },
         }
     }

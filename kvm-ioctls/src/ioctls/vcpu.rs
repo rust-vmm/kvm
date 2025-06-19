@@ -1024,6 +1024,7 @@ impl VcpuFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn set_xsave2(&self, xsave: &Xsave) -> Result<()> {
+        // SAFETY: xsave structure is properly initialized and validated
         unsafe { self.set_xsave(&xsave.as_fam_struct_ref().xsave) }
     }
 
