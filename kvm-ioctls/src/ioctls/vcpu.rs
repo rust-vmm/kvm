@@ -1024,7 +1024,7 @@ impl VcpuFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn set_xsave2(&self, xsave: &Xsave) -> Result<()> {
-        unsafe {self.set_xsave(&xsave.as_fam_struct_ref().xsave)}
+        unsafe { self.set_xsave(&xsave.as_fam_struct_ref().xsave) }
     }
 
     /// X86 specific call that returns the vcpu's current "xcrs".
@@ -1283,7 +1283,7 @@ impl VcpuFd {
     /// # use kvm_ioctls::Kvm;
     /// use std::arch::is_aarch64_feature_detected;
     ///
-    /// use kvm_bindings::{kvm_vcpu_init, KVM_ARM_VCPU_SVE};
+    /// use kvm_bindings::{KVM_ARM_VCPU_SVE, kvm_vcpu_init};
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let vcpu = vm.create_vcpu(0).unwrap();

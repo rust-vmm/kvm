@@ -9,7 +9,7 @@ use crate::bindings::{
     kvm_riscv_timer, user_regs_struct,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, IntoBytes};
+use zerocopy::{IntoBytes, transmute};
 
 serde_impls! {
     kvm_mp_state,
@@ -52,8 +52,8 @@ unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
 
 #[cfg(test)]
 mod tests {
+    use crate::serde::{Deserialize, Serialize};
     use bindings::*;
-    use serde::{Deserialize, Serialize};
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {
         let config = bincode::config::standard();

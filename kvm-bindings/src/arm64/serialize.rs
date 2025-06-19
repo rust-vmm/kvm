@@ -1,10 +1,10 @@
-use bindings::{
+use crate::bindings::{
     kvm_irq_routing, kvm_irq_routing_entry, kvm_irq_routing_entry__bindgen_ty_1,
     kvm_irq_routing_msi__bindgen_ty_1, kvm_mp_state, kvm_one_reg, kvm_regs, kvm_vcpu_init,
     user_fpsimd_state, user_pt_regs,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, IntoBytes};
+use zerocopy::{IntoBytes, transmute};
 
 serde_impls! {
     user_pt_regs,

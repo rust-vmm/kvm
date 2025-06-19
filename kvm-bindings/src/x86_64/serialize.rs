@@ -1,8 +1,8 @@
 // Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-use bindings::{
-    kvm_clock_data, kvm_cpuid2, kvm_cpuid_entry2, kvm_debugregs, kvm_dtable,
+use crate::bindings::{
+    kvm_clock_data, kvm_cpuid_entry2, kvm_cpuid2, kvm_debugregs, kvm_dtable,
     kvm_ioapic_state__bindgen_ty_1, kvm_irq_routing, kvm_irq_routing_entry,
     kvm_irq_routing_entry__bindgen_ty_1, kvm_irq_routing_msi__bindgen_ty_1, kvm_irqchip,
     kvm_irqchip__bindgen_ty_1, kvm_lapic_state, kvm_mp_state, kvm_msr_entry, kvm_msrs,
@@ -11,9 +11,9 @@ use bindings::{
 };
 use crate::fam_wrappers::kvm_xsave2;
 use crate::kvm_nested_state__bindgen_ty_1;
-use crate::nested::{kvm_nested_state__data, KvmNestedStateBuffer};
+use crate::nested::{KvmNestedStateBuffer, kvm_nested_state__data};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, FromBytes, FromZeros, Immutable, IntoBytes};
+use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes, transmute};
 
 serde_impls!(
     kvm_regs,
