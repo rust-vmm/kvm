@@ -52,8 +52,8 @@ unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
 
 #[cfg(test)]
 mod tests {
-    use crate::serde::{Deserialize, Serialize};
     use crate::bindings::*;
+    use crate::serde::{Deserialize, Serialize};
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {
         let config = bincode::config::standard();

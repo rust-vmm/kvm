@@ -194,7 +194,6 @@ impl FromRawFd for DeviceFd {
         DeviceFd {
             // SAFETY: fd is a valid file descriptor obtained from KVM ioctl
             fd: unsafe { File::from_raw_fd(fd) },
-
         }
     }
 }

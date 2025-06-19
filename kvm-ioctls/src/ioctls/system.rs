@@ -713,7 +713,7 @@ impl FromRawFd for Kvm {
     /// ```
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         Kvm {
-            // SAFETY: fd is a valid file descriptor obtained 
+            // SAFETY: fd is a valid file descriptor obtained
             //  From opening /dev/kvm
             kvm: unsafe { File::from_raw_fd(fd) },
         }
