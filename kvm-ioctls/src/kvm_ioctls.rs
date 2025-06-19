@@ -262,6 +262,12 @@ ioctl_iow_nr!(
     kvm_memory_attributes
 );
 
+#[cfg(target_arch = "x86_64")]
+ioctl_iowr_nr!(KVM_GET_NESTED_STATE, KVMIO, 0xbe, kvm_nested_state);
+
+#[cfg(target_arch = "x86_64")]
+ioctl_iow_nr!(KVM_SET_NESTED_STATE, KVMIO, 0xbf, kvm_nested_state);
+
 // Device ioctls.
 
 /* Available with KVM_CAP_DEVICE_CTRL */
@@ -279,7 +285,7 @@ mod tests {
     use std::fs::File;
     use std::os::unix::io::FromRawFd;
 
-    use libc::{c_char, open, O_RDWR};
+    use libc::{O_RDWR, c_char, open};
     use vmm_sys_util::ioctl::{ioctl, ioctl_with_val};
 
     use super::*;

@@ -7,10 +7,10 @@
 
 use std::mem::size_of;
 use std::os::unix::io::AsRawFd;
-use std::ptr::{null_mut, NonNull};
+use std::ptr::{NonNull, null_mut};
 
 use kvm_bindings::{
-    kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_run, KVM_COALESCED_MMIO_PAGE_OFFSET,
+    KVM_COALESCED_MMIO_PAGE_OFFSET, kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_run,
 };
 use vmm_sys_util::errno;
 
