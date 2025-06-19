@@ -7,6 +7,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the THIRD-PARTY file.
 
+// Part of public API
+#[cfg(target_arch = "x86_64")]
+pub use kvm_bindings::nested::KvmNestedStateBuffer;
+
 use kvm_bindings::*;
 use libc::EINVAL;
 use std::fs::File;
@@ -17,7 +21,10 @@ use crate::kvm_ioctls::*;
 use vmm_sys_util::errno;
 use vmm_sys_util::ioctl::{ioctl, ioctl_with_mut_ref, ioctl_with_ref};
 #[cfg(target_arch = "x86_64")]
-use vmm_sys_util::ioctl::{ioctl_with_mut_ptr, ioctl_with_ptr, ioctl_with_val};
+use {
+    std::num::NonZeroUsize,
+    vmm_sys_util::ioctl::{ioctl_with_mut_ptr, ioctl_with_ptr, ioctl_with_val},
+};
 
 /// Helper method to obtain the size of the register through its id
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
@@ -1983,6 +1990,93 @@ impl VcpuFd {
         }
     }
 
+    /// Returns the nested guest state using the `KVM_GET_NESTED_STATE` ioctl.
+    ///
+    /// This only works when `KVM_CAP_NESTED_STATE` is available.
+    ///
+    /// # Arguments
+    ///
+    /// - `buffer`: The buffer to be filled with the new nested state.
+    ///
+    /// # Return Value
+    /// If this returns `None`, KVM doesn't have nested state. Otherwise, the
+    /// actual length of the state is returned.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use kvm_ioctls::{Kvm, Cap, KvmNestedStateBuffer};
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let vcpu = vm.create_vcpu(0).unwrap();
+    /// let mut state_buffer = KvmNestedStateBuffer::empty();
+    /// if kvm.check_extension(Cap::NestedState) {
+    ///     vcpu.get_nested_state(&mut state_buffer).unwrap();
+    ///     // Next, serialize the actual state into a file or so.
+    /// }
+    /// ```
+    ///
+    /// [`Kvm::check_extension_int`]: kvm_ioctls::Kvm::check_extension_int
+    #[cfg(target_arch = "x86_64")]
+    pub fn get_nested_state(
+        &self,
+        buffer: &mut KvmNestedStateBuffer,
+    ) -> Result<Option<NonZeroUsize /* actual length of state */>> {
+        assert_ne!(buffer.size, 0, "buffer should not report a size of zero");
+
+        // SAFETY: Safe because we call this with a Vcpu fd and we trust the kernel.
+        let ret = unsafe { ioctl_with_mut_ref(self, KVM_GET_NESTED_STATE(), buffer) };
+        match ret {
+            0 => {
+                let size = buffer.size as usize;
+                if size == size_of::<kvm_nested_state /* just the empty header */>() {
+                    Ok(None)
+                } else {
+                    Ok(Some(NonZeroUsize::new(size).unwrap()))
+                }
+            }
+            _ => Err(errno::Error::last()),
+        }
+    }
+
+    /// Sets the nested guest state using the `KVM_SET_NESTED_STATE` ioctl.
+    ///
+    /// This only works when  `KVM_CAP_NESTED_STATE` is available.
+    ///
+    /// # Arguments
+    ///
+    /// - `state`: The new state to be put into KVM. The header must report the
+    ///   `size` of the state properly. The state must be retrieved first using
+    ///   [`Self::get_nested_state`].
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use kvm_ioctls::{Kvm, Cap, KvmNestedStateBuffer};
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let vcpu = vm.create_vcpu(0).unwrap();
+    /// if kvm.check_extension(Cap::NestedState) {
+    ///     let mut state_buffer = KvmNestedStateBuffer::empty();
+    ///     vcpu.get_nested_state(&mut state_buffer).unwrap();
+    ///     // Rename the variable to better reflect the role.
+    ///     let old_state = state_buffer;
+    ///
+    ///     // now assume we transfer the state to a new location
+    ///     // and load it back into kvm:
+    ///     vcpu.set_nested_state(&old_state).unwrap();
+    /// }
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub fn set_nested_state(&self, state: &KvmNestedStateBuffer) -> Result<()> {
+        // SAFETY: Safe because we call this with a Vcpu fd and we trust the kernel.
+        let ret = unsafe { ioctl_with_ref(self, KVM_SET_NESTED_STATE(), state) };
+        match ret {
+            0 => Ok(()),
+            _ => Err(errno::Error::last()),
+        }
+    }
+
     /// Queues an NMI on the thread's vcpu. Only usable if `KVM_CAP_USER_NMI`
     /// is available.
     ///
@@ -3608,5 +3702,35 @@ mod tests {
         };
         assert_eq!(addr, ADDR);
         assert_eq!(data, (DATA as u16).to_le_bytes());
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_get_and_set_nested_state() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let vcpu = vm.create_vcpu(0).unwrap();
+
+        // Ensure that KVM also during runtime never wants more memory than we have pre-allocated
+        // by the helper type. KVM is expected to report:
+        // - 128+4096==4224 on SVM
+        // - 128+8192==8320 on VMX
+        let kvm_nested_state_size = kvm.check_extension_int(Cap::NestedState) as usize;
+        assert!(kvm_nested_state_size <= size_of::<KvmNestedStateBuffer>());
+
+        let mut state_buffer = KvmNestedStateBuffer::default();
+        // Ensure that header shows full buffer length.
+        assert_eq!(
+            state_buffer.size as usize,
+            size_of::<KvmNestedStateBuffer>()
+        );
+
+        vcpu.get_nested_state(&mut state_buffer).unwrap();
+        let old_state = state_buffer;
+
+        // There is no nested guest in this test, so there is no payload.
+        assert_eq!(state_buffer.size as usize, size_of::<kvm_nested_state>());
+
+        vcpu.set_nested_state(&old_state).unwrap();
     }
 }
