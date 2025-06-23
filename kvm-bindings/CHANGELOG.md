@@ -1,8 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## Upcoming Release
+
+## v0.13.0
 
 ### Added
+
+- [[#322]](https://github.com/rust-vmm/kvm/pull/322)  
+  Foundations for `kvm-ioctls`'s GET_NESTED_STATE and SET_NESTED_STATE 
 
 ### Changed
 
@@ -10,7 +15,7 @@
 
 ### Removed
 
-## [0.12.0]
+## v0.12.0
 
 ### Added
 
@@ -18,32 +23,32 @@
 - Added FamStructWrapper for `kvm_irq_routing` type.
 - Added serde support for `kvm_irq_routing` and `kvm_irq_routing_entry` types.
 
-## [0.11.1]
+## v0.11.1
 
 ### Added
 
 - Implemented `Serialize` / `Deserialize` for `kvm_xsave2`.
 
-## [0.11.0]
+## v0.11.0
 
 ### Changed
 
 - Updated KVM_MAX_CPUID_ENTRIES to 256.
 
-## [0.10.0]
+## v0.10.0
 
 ### Added
 
 - RISC-V KVM bindings for Linux kernel v6.9, including serialization support.
 
-## [0.9.1]
+## v0.9.1
 
 ### Changed
 
 - Fixed and validated manual (De)Serialize implementations to work with
   `serde_json` crate.
 
-## [0.9.0]
+## v0.9.0
 
 ### Changed
 
@@ -53,28 +58,28 @@
 
 - Removed v6.2 bindings.
 
-## [0.8.2]
+## v0.8.2
 
 ### Changed
 
 - Improve performance of bindings deserialization by \~5% by avoiding
   a temporary allocation.
 
-## [0.8.1]
+## v0.8.1
 
 ### Fixed
 
 - Implement `Default` for `kvm_xsave2`, which fixes usage of `Xsave`
   unconditionally causing compile errors in downstream crates.
 
-## [0.8.0]
+## v0.8.0
 
 ### Added
 
 - An opt-in feature `serde` that enables [`serde`](https://serde.rs)-based
   (de)serialization of various bindings.
 
-## [0.7.0]
+## v0.7.0
 
 ### Changed
 - API change in the bindings from upstream kernel changes:
@@ -87,7 +92,7 @@
 
 - Dropped "x86" (32-bit) x86 support
 
-## [0.6.0]
+## v0.6.0
 
 ### Changed
 
@@ -99,7 +104,7 @@
 
 - Implement `PartialEq` for fam\_wrappers
 
-## [0.5.0]
+## v0.5.0
 
 ### Changed
 
@@ -109,18 +114,18 @@
 
 - Removed v4.14 bindings.
 
-## [0.4.0]
+## v0.4.0
 
 - vmm-sys-utils dependency bumped to match kvm-ioctls.
 
-## [0.3.0]
+## v0.3.0
 
 ### Added
 
 - Enabled `fam-wrappers` support on arm and arm64.
 - Added fam-wrapper for the arm specific `kvm_reg_list` struct.
 
-## [0.2.0]
+## v0.2.0
 
 ### Added
 
@@ -131,13 +136,13 @@
 - Added safe fam-wrappers for `kvm_msr_list`, `kvm_msrs`,
   and `kvm_cpuid2`.
 
-## [0.1.1]
+## v0.1.1
 
 ### Changed
 
 - Do not enforce rust Edition 2018.
 
-## [0.1.0]
+## v0.1.0
 
 ### Added
 

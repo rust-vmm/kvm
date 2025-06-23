@@ -2,6 +2,19 @@
 
 ## Upcoming Release
 
+## v0.23.0
+
+### Added
+
+- [[#322]](https://github.com/rust-vmm/kvm/pull/322) Added
+  `VcpuFd::nested_state()`and `VcpuFd::set_nested_state()` to work with nested
+  KVM state. Only works on `x86`. The helper type `KvmNestedStateBuffer`makes
+  these new functions easily usable.
+
+### Changed
+
+- Upgrade `kvm-bindings` to `v0.13.0`
+
 ## v0.22.0
 
 ### Changed
