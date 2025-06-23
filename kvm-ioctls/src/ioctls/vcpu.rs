@@ -2011,14 +2011,14 @@ impl VcpuFd {
     /// let vcpu = vm.create_vcpu(0).unwrap();
     /// let mut state_buffer = KvmNestedStateBuffer::empty();
     /// if kvm.check_extension(Cap::NestedState) {
-    ///     vcpu.get_nested_state(&mut state_buffer).unwrap();
+    ///     vcpu.nested_state(&mut state_buffer).unwrap();
     ///     // Next, serialize the actual state into a file or so.
     /// }
     /// ```
     ///
     /// [`Kvm::check_extension_int`]: kvm_ioctls::Kvm::check_extension_int
     #[cfg(target_arch = "x86_64")]
-    pub fn get_nested_state(
+    pub fn nested_state(
         &self,
         buffer: &mut KvmNestedStateBuffer,
     ) -> Result<Option<NonZeroUsize /* actual length of state */>> {
@@ -2047,7 +2047,7 @@ impl VcpuFd {
     ///
     /// - `state`: The new state to be put into KVM. The header must report the
     ///   `size` of the state properly. The state must be retrieved first using
-    ///   [`Self::get_nested_state`].
+    ///   [`Self::nested_state`].
     ///
     /// # Example
     ///
@@ -2058,7 +2058,7 @@ impl VcpuFd {
     /// let vcpu = vm.create_vcpu(0).unwrap();
     /// if kvm.check_extension(Cap::NestedState) {
     ///     let mut state_buffer = KvmNestedStateBuffer::empty();
-    ///     vcpu.get_nested_state(&mut state_buffer).unwrap();
+    ///     vcpu.nested_state(&mut state_buffer).unwrap();
     ///     // Rename the variable to better reflect the role.
     ///     let old_state = state_buffer;
     ///
@@ -3725,7 +3725,7 @@ mod tests {
             size_of::<KvmNestedStateBuffer>()
         );
 
-        vcpu.get_nested_state(&mut state_buffer).unwrap();
+        vcpu.nested_state(&mut state_buffer).unwrap();
         let old_state = state_buffer;
 
         // There is no nested guest in this test, so there is no payload.
