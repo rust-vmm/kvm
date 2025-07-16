@@ -2,6 +2,8 @@
 
 ## Upcoming Release
 
+- Plumb through KVM_CAP_X2APIC_API as X2ApicApi cap.
+
 ## v0.23.0
 
 ### Added
