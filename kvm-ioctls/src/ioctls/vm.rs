@@ -1908,6 +1908,95 @@ impl VmFd {
         }
         Ok(())
     }
+
+    /// Sets a specified piece of vm configuration and/or state.
+    ///
+    /// See the documentation for `KVM_SET_DEVICE_ATTR` in
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt)
+    /// # Arguments
+    ///
+    /// * `device_attr` - The vm attribute to be set.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_ioctls;
+    /// # extern crate kvm_bindings;
+    /// # use kvm_ioctls::Kvm;
+    /// # use kvm_bindings::{
+    ///    PSCI_0_2_FN64_BASE, kvm_smccc_filter_action_KVM_SMCCC_FILTER_FWD_TO_USER,
+    ///    KVM_ARM_VM_SMCCC_CTRL, KVM_ARM_VM_SMCCC_FILTER
+    /// };
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    ///
+    /// const PSCI_0_2_FN64_CPU_ON: u32 = PSCI_0_2_FN64_BASE + 3;
+    /// let smccc_filter = kvm_bindings::kvm_smccc_filter {
+    ///     base: PSCI_0_2_FN64_CPU_ON,
+    ///     nr_functions: 1,
+    ///     action: kvm_smccc_filter_action_KVM_SMCCC_FILTER_FWD_TO_USER as u8,
+    ///     pad: [0u8; 15],
+    /// };
+    ///
+    /// let dist_attr = kvm_bindings::kvm_device_attr {
+    ///     group: KVM_ARM_VM_SMCCC_CTRL,
+    ///     attr: KVM_ARM_VM_SMCCC_FILTER as u64,
+    ///     addr: &smccc_filter as *const _ as u64,
+    ///     flags: 0,
+    /// };
+    ///
+    /// if (vm.has_device_attr(&dist_attr).is_ok()) {
+    ///     vm.set_device_attr(&dist_attr).unwrap();
+    /// }
+    /// ```
+    #[cfg(target_arch = "aarch64")]
+    pub fn set_device_attr(&self, device_attr: &kvm_device_attr) -> Result<()> {
+        // SAFETY: Safe because we call this with a Vm fd and we trust the kernel.
+        let ret = unsafe { ioctl_with_ref(self, KVM_SET_DEVICE_ATTR(), device_attr) };
+        if ret != 0 {
+            return Err(errno::Error::last());
+        }
+        Ok(())
+    }
+
+    /// Tests whether a vm supports a particular attribute.
+    ///
+    /// See the documentation for `KVM_HAS_DEVICE_ATTR` in
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt)
+    /// # Arguments
+    ///
+    /// * `device_attr` - The vm attribute to be tested. `addr` field is ignored.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_ioctls;
+    /// # extern crate kvm_bindings;
+    /// # use kvm_ioctls::Kvm;
+    /// # use kvm_bindings::{
+    ///    KVM_ARM_VM_SMCCC_CTRL, KVM_ARM_VM_SMCCC_FILTER
+    /// };
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    ///
+    /// let dist_attr = kvm_bindings::kvm_device_attr {
+    ///     group: KVM_ARM_VM_SMCCC_CTRL,
+    ///     attr: KVM_ARM_VM_SMCCC_FILTER as u64,
+    ///     addr: 0x0,
+    ///     flags: 0,
+    /// };
+    ///
+    /// vm.has_device_attr(&dist_attr);
+    /// ```
+    #[cfg(target_arch = "aarch64")]
+    pub fn has_device_attr(&self, device_attr: &kvm_device_attr) -> Result<()> {
+        // SAFETY: Safe because we call this with a Vm fd and we trust the kernel.
+        let ret = unsafe { ioctl_with_ref(self, KVM_HAS_DEVICE_ATTR(), device_attr) };
+        if ret != 0 {
+            return Err(errno::Error::last());
+        }
+        Ok(())
+    }
 }
 
 /// Helper function to create a new `VmFd`.
@@ -2786,5 +2875,30 @@ mod tests {
         );
         vm.register_enc_memory_region(&memory_region).unwrap();
         vm.unregister_enc_memory_region(&memory_region).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_arch = "aarch64")]
+    fn test_set_smccc_filter() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+
+        const PSCI_0_2_FN64_CPU_ON: u32 = PSCI_0_2_FN64_BASE + 3;
+        let smccc_filter = kvm_bindings::kvm_smccc_filter {
+            base: PSCI_0_2_FN64_CPU_ON,
+            nr_functions: 1,
+            action: kvm_smccc_filter_action_KVM_SMCCC_FILTER_FWD_TO_USER as u8,
+            pad: [0u8; 15],
+        };
+
+        let dist_attr = kvm_bindings::kvm_device_attr {
+            group: KVM_ARM_VM_SMCCC_CTRL,
+            attr: KVM_ARM_VM_SMCCC_FILTER as u64,
+            addr: &smccc_filter as *const _ as u64,
+            flags: 0,
+        };
+
+        vm.has_device_attr(&dist_attr).unwrap();
+        vm.set_device_attr(&dist_attr).unwrap();
     }
 }
