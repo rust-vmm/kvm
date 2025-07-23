@@ -2,7 +2,11 @@
 
 ## Upcoming Release
 
+### Added
+
 - Plumb through KVM_CAP_X2APIC_API as X2ApicApi cap.
+- [[#334]](https://github.com/rust-vmm/kvm/pull/334) Added support for
+  `KVM_HAS_DEVICE_ATTR` and `KVM_SET_DEVICE_ATTR` vm ioctl on aarch64.
 
 ## v0.23.0
 
