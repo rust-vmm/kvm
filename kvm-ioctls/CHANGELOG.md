@@ -2,6 +2,11 @@
 
 ## Upcoming Release
 
+### Added
+
+- Added support for `KVM_HAS_DEVICE_ATTR` and `KVM_SET_DEVICE_ATTR` vm ioctl
+  on aarch64.
+
 ## v0.23.0
 
 ### Added
