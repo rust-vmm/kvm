@@ -167,4 +167,6 @@ pub enum Cap {
     MemoryAttributes = KVM_CAP_MEMORY_ATTRIBUTES,
     #[cfg(target_arch = "x86_64")]
     NestedState = KVM_CAP_NESTED_STATE,
+    #[cfg(target_arch = "x86_64")]
+    X2ApicApi = KVM_CAP_X2APIC_API,
 }

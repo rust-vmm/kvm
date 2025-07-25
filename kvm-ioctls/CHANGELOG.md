@@ -6,6 +6,7 @@
 
 - Added support for `KVM_HAS_DEVICE_ATTR` and `KVM_SET_DEVICE_ATTR` vm ioctl
   on aarch64.
+- Plumb through KVM_CAP_X2APIC_API as X2ApicApi cap.
 
 ## v0.23.0
 
