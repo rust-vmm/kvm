@@ -133,8 +133,8 @@ impl DeviceFd {
     /// # #[cfg(target_arch = "aarch64")]
     /// # {
     /// use kvm_bindings::{
-    ///     kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V3,
-    ///     KVM_DEV_ARM_VGIC_GRP_NR_IRQS,
+    ///     KVM_DEV_ARM_VGIC_GRP_NR_IRQS, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2,
+    ///     kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V3,
     /// };
     ///
     /// // Create a GIC device.

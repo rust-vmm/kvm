@@ -1925,7 +1925,11 @@ impl Default for kvm_run__bindgen_ty_1__bindgen_ty_8 {
 }
 impl ::std::fmt::Debug for kvm_run__bindgen_ty_1__bindgen_ty_8 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_run__bindgen_ty_1__bindgen_ty_8 {{ nr: {:?}, args: {:?}, ret: {:?}, __bindgen_anon_1: {:?} }}" , self . nr , self . args , self . ret , self . __bindgen_anon_1)
+        write!(
+            f,
+            "kvm_run__bindgen_ty_1__bindgen_ty_8 {{ nr: {:?}, args: {:?}, ret: {:?}, __bindgen_anon_1: {:?} }}",
+            self.nr, self.args, self.ret, self.__bindgen_anon_1
+        )
     }
 }
 #[repr(C)]
@@ -2052,8 +2056,18 @@ const _: () = {
     ["Alignment of kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1"]
         [::std::mem::align_of::<kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1>(
         ) - 1usize];
-    ["Offset of field: kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1::insn_size"] [:: std :: mem :: offset_of ! (kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1 , insn_size) - 0usize] ;
-    ["Offset of field: kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1::insn_bytes"] [:: std :: mem :: offset_of ! (kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1 , insn_bytes) - 1usize] ;
+    [
+        "Offset of field: kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1::insn_size",
+    ][::std::mem::offset_of!(
+        kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1,
+        insn_size
+    ) - 0usize];
+    [
+        "Offset of field: kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1::insn_bytes",
+    ][::std::mem::offset_of!(
+        kvm_run__bindgen_ty_1__bindgen_ty_14__bindgen_ty_1__bindgen_ty_1,
+        insn_bytes
+    ) - 1usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
@@ -2103,7 +2117,11 @@ impl Default for kvm_run__bindgen_ty_1__bindgen_ty_14 {
 }
 impl ::std::fmt::Debug for kvm_run__bindgen_ty_1__bindgen_ty_14 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_run__bindgen_ty_1__bindgen_ty_14 {{ suberror: {:?}, ndata: {:?}, flags: {:?}, __bindgen_anon_1: {:?} }}" , self . suberror , self . ndata , self . flags , self . __bindgen_anon_1)
+        write!(
+            f,
+            "kvm_run__bindgen_ty_1__bindgen_ty_14 {{ suberror: {:?}, ndata: {:?}, flags: {:?}, __bindgen_anon_1: {:?} }}",
+            self.suberror, self.ndata, self.flags, self.__bindgen_anon_1
+        )
     }
 }
 #[repr(C)]
@@ -2248,7 +2266,11 @@ impl Default for kvm_run__bindgen_ty_1__bindgen_ty_19 {
 }
 impl ::std::fmt::Debug for kvm_run__bindgen_ty_1__bindgen_ty_19 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_run__bindgen_ty_1__bindgen_ty_19 {{ type: {:?}, ndata: {:?}, __bindgen_anon_1: {:?} }}" , self . type_ , self . ndata , self . __bindgen_anon_1)
+        write!(
+            f,
+            "kvm_run__bindgen_ty_1__bindgen_ty_19 {{ type: {:?}, ndata: {:?}, __bindgen_anon_1: {:?} }}",
+            self.type_, self.ndata, self.__bindgen_anon_1
+        )
     }
 }
 #[repr(C)]
@@ -2563,7 +2585,23 @@ impl Default for kvm_run {
 }
 impl ::std::fmt::Debug for kvm_run {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_run {{ request_interrupt_window: {:?}, immediate_exit: {:?}, padding1: {:?}, exit_reason: {:?}, ready_for_interrupt_injection: {:?}, if_flag: {:?}, flags: {:?}, cr8: {:?}, apic_base: {:?}, __bindgen_anon_1: {:?}, kvm_valid_regs: {:?}, kvm_dirty_regs: {:?}, s: {:?} }}" , self . request_interrupt_window , self . immediate_exit , self . padding1 , self . exit_reason , self . ready_for_interrupt_injection , self . if_flag , self . flags , self . cr8 , self . apic_base , self . __bindgen_anon_1 , self . kvm_valid_regs , self . kvm_dirty_regs , self . s)
+        write!(
+            f,
+            "kvm_run {{ request_interrupt_window: {:?}, immediate_exit: {:?}, padding1: {:?}, exit_reason: {:?}, ready_for_interrupt_injection: {:?}, if_flag: {:?}, flags: {:?}, cr8: {:?}, apic_base: {:?}, __bindgen_anon_1: {:?}, kvm_valid_regs: {:?}, kvm_dirty_regs: {:?}, s: {:?} }}",
+            self.request_interrupt_window,
+            self.immediate_exit,
+            self.padding1,
+            self.exit_reason,
+            self.ready_for_interrupt_injection,
+            self.if_flag,
+            self.flags,
+            self.cr8,
+            self.apic_base,
+            self.__bindgen_anon_1,
+            self.kvm_valid_regs,
+            self.kvm_dirty_regs,
+            self.s
+        )
     }
 }
 #[repr(C)]
@@ -2693,7 +2731,11 @@ impl Default for kvm_coalesced_mmio {
 }
 impl ::std::fmt::Debug for kvm_coalesced_mmio {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_coalesced_mmio {{ phys_addr: {:?}, len: {:?}, __bindgen_anon_1: {:?}, data: {:?} }}" , self . phys_addr , self . len , self . __bindgen_anon_1 , self . data)
+        write!(
+            f,
+            "kvm_coalesced_mmio {{ phys_addr: {:?}, len: {:?}, __bindgen_anon_1: {:?}, data: {:?} }}",
+            self.phys_addr, self.len, self.__bindgen_anon_1, self.data
+        )
     }
 }
 #[repr(C)]
@@ -2895,7 +2937,11 @@ impl Default for kvm_clear_dirty_log {
 }
 impl ::std::fmt::Debug for kvm_clear_dirty_log {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_clear_dirty_log {{ slot: {:?}, num_pages: {:?}, first_page: {:?}, __bindgen_anon_1: {:?} }}" , self . slot , self . num_pages , self . first_page , self . __bindgen_anon_1)
+        write!(
+            f,
+            "kvm_clear_dirty_log {{ slot: {:?}, num_pages: {:?}, first_page: {:?}, __bindgen_anon_1: {:?} }}",
+            self.slot, self.num_pages, self.first_page, self.__bindgen_anon_1
+        )
     }
 }
 #[repr(C)]
@@ -3130,7 +3176,11 @@ impl Default for kvm_irq_routing_msi {
 }
 impl ::std::fmt::Debug for kvm_irq_routing_msi {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write ! (f , "kvm_irq_routing_msi {{ address_lo: {:?}, address_hi: {:?}, data: {:?}, __bindgen_anon_1: {:?} }}" , self . address_lo , self . address_hi , self . data , self . __bindgen_anon_1)
+        write!(
+            f,
+            "kvm_irq_routing_msi {{ address_lo: {:?}, address_hi: {:?}, data: {:?}, __bindgen_anon_1: {:?} }}",
+            self.address_lo, self.address_hi, self.data, self.__bindgen_anon_1
+        )
     }
 }
 #[repr(C)]
