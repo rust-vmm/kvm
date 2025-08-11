@@ -108,9 +108,8 @@ impl VmFd {
         user_memory_region: kvm_userspace_memory_region,
     ) -> Result<()> {
         // SAFETY: we trust the kernel and verified parameters
-        let ret = unsafe {
-            ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION(), &user_memory_region)
-        };
+        let ret =
+            unsafe { ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION(), &user_memory_region) };
         if ret == 0 {
             Ok(())
         } else {
@@ -148,8 +147,8 @@ impl VmFd {
     /// extern crate kvm_bindings;
     ///
     /// use kvm_bindings::{
-    ///     kvm_create_guest_memfd, kvm_userspace_memory_region2, KVM_CAP_GUEST_MEMFD,
-    ///     KVM_CAP_USER_MEMORY2, KVM_MEM_GUEST_MEMFD,
+    ///     KVM_CAP_GUEST_MEMFD, KVM_CAP_USER_MEMORY2, KVM_MEM_GUEST_MEMFD, kvm_create_guest_memfd,
+    ///     kvm_userspace_memory_region2,
     /// };
     /// use kvm_ioctls::{Cap, Kvm};
     /// use std::os::fd::RawFd;
@@ -197,9 +196,8 @@ impl VmFd {
         user_memory_region2: kvm_userspace_memory_region2,
     ) -> Result<()> {
         // SAFETY: we trust the kernel and verified parameters
-        let ret = unsafe {
-            ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region2)
-        };
+        let ret =
+            unsafe { ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region2) };
         if ret == 0 {
             Ok(())
         } else {
@@ -281,7 +279,7 @@ impl VmFd {
     /// #[cfg(target_arch = "aarch64")]
     /// {
     ///     use kvm_bindings::{
-    ///         kvm_create_device, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2, KVM_CREATE_DEVICE_TEST,
+    ///         KVM_CREATE_DEVICE_TEST, kvm_create_device, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2,
     ///     };
     ///     let mut gic_device = kvm_create_device {
     ///         type_: kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2,
@@ -668,7 +666,7 @@ impl VmFd {
     /// extern crate libc;
     /// extern crate vmm_sys_util;
     /// # use kvm_ioctls::{IoEventAddress, Kvm, NoDatamatch};
-    /// use libc::{eventfd, EFD_NONBLOCK};
+    /// use libc::{EFD_NONBLOCK, eventfd};
     /// use vmm_sys_util::eventfd::EventFd;
     /// let kvm = Kvm::new().unwrap();
     /// let vm_fd = kvm.create_vm().unwrap();
@@ -1250,9 +1248,7 @@ impl VmFd {
     /// ```
     pub unsafe fn create_vcpu_from_rawfd(&self, fd: RawFd) -> Result<VcpuFd> {
         // SAFETY: we trust the kernel and verified parameters
-        let vcpu = unsafe {
-            File::from_raw_fd(fd)
-        };
+        let vcpu = unsafe { File::from_raw_fd(fd) };
         let kvm_run_ptr = KvmRunWrapper::mmap_from_fd(&vcpu, self.run_size)?;
         Ok(new_vcpu(vcpu, kvm_run_ptr))
     }
@@ -1273,9 +1269,9 @@ impl VmFd {
     /// # extern crate kvm_bindings;
     /// # use kvm_ioctls::Kvm;
     /// use kvm_bindings::{
-    ///     kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V3,
-    ///     kvm_device_type_KVM_DEV_TYPE_RISCV_AIA, kvm_device_type_KVM_DEV_TYPE_VFIO,
-    ///     KVM_CREATE_DEVICE_TEST,
+    ///     KVM_CREATE_DEVICE_TEST, kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V2,
+    ///     kvm_device_type_KVM_DEV_TYPE_ARM_VGIC_V3, kvm_device_type_KVM_DEV_TYPE_RISCV_AIA,
+    ///     kvm_device_type_KVM_DEV_TYPE_VFIO,
     /// };
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
@@ -1372,7 +1368,7 @@ impl VmFd {
     /// extern crate kvm_bindings;
     ///
     /// # use kvm_ioctls::Kvm;
-    /// use kvm_bindings::{kvm_enable_cap, KVM_CAP_SPLIT_IRQCHIP};
+    /// use kvm_bindings::{KVM_CAP_SPLIT_IRQCHIP, kvm_enable_cap};
     ///
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
@@ -1501,7 +1497,7 @@ impl VmFd {
     /// extern crate kvm_bindings;
     ///
     /// # use kvm_ioctls::{Cap, Kvm};
-    /// use kvm_bindings::{kvm_create_guest_memfd, KVM_CAP_GUEST_MEMFD};
+    /// use kvm_bindings::{KVM_CAP_GUEST_MEMFD, kvm_create_guest_memfd};
     /// use std::os::fd::RawFd;
     ///
     /// let kvm = Kvm::new().unwrap();
@@ -1554,9 +1550,9 @@ impl VmFd {
     ///
     /// # use kvm_ioctls::{Cap, Kvm};
     /// use kvm_bindings::{
-    ///     kvm_create_guest_memfd, kvm_memory_attributes, kvm_userspace_memory_region2,
-    ///     KVM_CAP_GUEST_MEMFD, KVM_CAP_MEMORY_ATTRIBUTES, KVM_CAP_USER_MEMORY2,
-    ///     KVM_MEMORY_ATTRIBUTE_PRIVATE, KVM_MEM_GUEST_MEMFD,
+    ///     KVM_CAP_GUEST_MEMFD, KVM_CAP_MEMORY_ATTRIBUTES, KVM_CAP_USER_MEMORY2, KVM_MEM_GUEST_MEMFD,
+    ///     KVM_MEMORY_ATTRIBUTE_PRIVATE, kvm_create_guest_memfd, kvm_memory_attributes,
+    ///     kvm_userspace_memory_region2,
     /// };
     /// use std::os::fd::RawFd;
     ///
@@ -1658,9 +1654,7 @@ impl VmFd {
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn encrypt_op<T>(&self, op: *mut T) -> Result<()> {
         // SAFETY: we trust the kernel and verified parameters
-        let ret = unsafe {
-            ioctl_with_mut_ptr(self, KVM_MEMORY_ENCRYPT_OP(), op)
-        };
+        let ret = unsafe { ioctl_with_mut_ptr(self, KVM_MEMORY_ENCRYPT_OP(), op) };
         if ret == 0 {
             Ok(())
         } else {

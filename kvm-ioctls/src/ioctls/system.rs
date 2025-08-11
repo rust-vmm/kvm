@@ -282,11 +282,7 @@ impl Kvm {
     /// ```
     pub fn get_nr_vcpus(&self) -> usize {
         let x = self.check_extension_int(Cap::NrVcpus);
-        if x > 0 {
-            x as usize
-        } else {
-            4
-        }
+        if x > 0 { x as usize } else { 4 }
     }
 
     /// Returns the maximum allowed memory slots per VM.
@@ -305,11 +301,7 @@ impl Kvm {
     /// ```
     pub fn get_nr_memslots(&self) -> usize {
         let x = self.check_extension_int(Cap::NrMemslots);
-        if x > 0 {
-            x as usize
-        } else {
-            32
-        }
+        if x > 0 { x as usize } else { 32 }
     }
 
     /// Gets the recommended maximum number of VCPUs per VM.
@@ -471,7 +463,7 @@ impl Kvm {
     /// # Example
     ///
     /// ```
-    /// use kvm_bindings::{kvm_msr_entry, Msrs};
+    /// use kvm_bindings::{Msrs, kvm_msr_entry};
     /// use kvm_ioctls::Kvm;
     ///
     /// let kvm = Kvm::new().unwrap();
@@ -513,7 +505,7 @@ impl Kvm {
     /// # Example
     ///
     /// ```
-    /// use kvm_bindings::{kvm_msr_entry, Msrs};
+    /// use kvm_bindings::{Msrs, kvm_msr_entry};
     /// use kvm_ioctls::Kvm;
     ///
     /// let kvm = Kvm::new().unwrap();

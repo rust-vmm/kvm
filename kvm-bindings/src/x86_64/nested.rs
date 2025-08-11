@@ -5,8 +5,8 @@
 //! state save/resume. See [`KvmNestedStateBuffer`].
 
 use crate::KVM_STATE_NESTED_SVM_VMCB_SIZE;
-use core::mem;
 use crate::{KVM_STATE_NESTED_VMX_VMCS_SIZE, kvm_nested_state__bindgen_ty_1};
+use core::mem;
 
 /// Non-zero variant of the bindgen data union.
 ///
