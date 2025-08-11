@@ -2,14 +2,14 @@
 // Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-use bindings::{
+use super::bindings::{
     kvm_irq_routing, kvm_irq_routing_entry, kvm_irq_routing_entry__bindgen_ty_1,
     kvm_irq_routing_msi__bindgen_ty_1, kvm_mp_state, kvm_one_reg, kvm_riscv_aia_csr,
     kvm_riscv_config, kvm_riscv_core, kvm_riscv_csr, kvm_riscv_sbi_sta, kvm_riscv_smstateen_csr,
     kvm_riscv_timer, user_regs_struct,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, IntoBytes};
+use zerocopy::{IntoBytes, transmute};
 
 serde_impls! {
     kvm_mp_state,
@@ -52,7 +52,7 @@ unsafe impl IntoBytes for kvm_irq_routing_entry__bindgen_ty_1 {
 
 #[cfg(test)]
 mod tests {
-    use bindings::*;
+    use super::*;
     use serde::{Deserialize, Serialize};
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {

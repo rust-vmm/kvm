@@ -4,14 +4,14 @@
 
 ### Bindgen
 The bindings are currently generated using
-[bindgen](https://crates.io/crates/bindgen) version 0.70.1:
+[bindgen](https://crates.io/crates/bindgen) version 0.72.0:
 ```bash
-cargo install bindgen-cli --vers 0.70.1
+cargo install bindgen-cli --vers 0.72.0
 ```
 
 ### Linux Kernel
 Generating bindings depends on the Linux kernel, so you need to have the
-repository on your machine. Replace `v6.9` with the kernel release for
+repository on your machine. Replace `v6.16` with the kernel release for
 which you wish to generate bindings:
 
 ```bash
@@ -23,7 +23,7 @@ git clone https://github.com/torvalds/linux.git --branch v6.9 --depth 1
 When adding a new architecture, the bindings must be generated for all existing
 versions for consistency reasons.
 
-### Example for arm64 and kernel version 6.9
+### Example for arm64 and kernel version 6.16
 
 For this example we assume that you have both linux and kvm-bindings
 repositories in your root.
@@ -44,7 +44,7 @@ export ARCH=arm64
 make headers_install ARCH=$ARCH INSTALL_HDR_PATH="$ARCH"_headers
 pushd "$ARCH"_headers
 bindgen include/linux/kvm.h -o bindings.rs  \
-     --impl-debug --with-derive-default  \
+     --impl-debug --with-derive-default --rust-edition 2024  \
      --with-derive-partialeq  --impl-partialeq \
      -- -Iinclude
 popd
