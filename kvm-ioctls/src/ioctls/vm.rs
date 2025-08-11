@@ -14,10 +14,10 @@ use std::os::raw::{c_int, c_ulong};
 use std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
 
 use crate::cap::Cap;
-use crate::ioctls::device::new_device;
 use crate::ioctls::device::DeviceFd;
-use crate::ioctls::vcpu::new_vcpu;
+use crate::ioctls::device::new_device;
 use crate::ioctls::vcpu::VcpuFd;
+use crate::ioctls::vcpu::new_vcpu;
 use crate::ioctls::{KvmRunWrapper, Result};
 use crate::kvm_ioctls::*;
 use vmm_sys_util::errno;
@@ -107,7 +107,10 @@ impl VmFd {
         &self,
         user_memory_region: kvm_userspace_memory_region,
     ) -> Result<()> {
-        let ret = ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION(), &user_memory_region);
+        // SAFETY: we trust the kernel and verified parameters
+        let ret = unsafe {
+            ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION(), &user_memory_region)
+        };
         if ret == 0 {
             Ok(())
         } else {
@@ -193,7 +196,10 @@ impl VmFd {
         &self,
         user_memory_region2: kvm_userspace_memory_region2,
     ) -> Result<()> {
-        let ret = ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region2);
+        // SAFETY: we trust the kernel and verified parameters
+        let ret = unsafe {
+            ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region2)
+        };
         if ret == 0 {
             Ok(())
         } else {
@@ -692,8 +698,8 @@ impl VmFd {
             datamatch: datamatch.into(),
             len: std::mem::size_of::<T>() as u32,
             addr: match addr {
-                IoEventAddress::Pio(ref p) => *p,
-                IoEventAddress::Mmio(ref m) => *m,
+                IoEventAddress::Pio(p) => *p,
+                IoEventAddress::Mmio(m) => *m,
             },
             fd: fd.as_raw_fd(),
             flags,
@@ -768,8 +774,8 @@ impl VmFd {
             datamatch: datamatch.into(),
             len: std::mem::size_of::<T>() as u32,
             addr: match addr {
-                IoEventAddress::Pio(ref p) => *p,
-                IoEventAddress::Mmio(ref m) => *m,
+                IoEventAddress::Pio(p) => *p,
+                IoEventAddress::Mmio(m) => *m,
             },
             fd: fd.as_raw_fd(),
             flags,
@@ -1243,7 +1249,10 @@ impl VmFd {
     /// let vcpu = unsafe { vm.create_vcpu_from_rawfd(rawfd).unwrap() };
     /// ```
     pub unsafe fn create_vcpu_from_rawfd(&self, fd: RawFd) -> Result<VcpuFd> {
-        let vcpu = File::from_raw_fd(fd);
+        // SAFETY: we trust the kernel and verified parameters
+        let vcpu = unsafe {
+            File::from_raw_fd(fd)
+        };
         let kvm_run_ptr = KvmRunWrapper::mmap_from_fd(&vcpu, self.run_size)?;
         Ok(new_vcpu(vcpu, kvm_run_ptr))
     }
@@ -1648,7 +1657,10 @@ impl VmFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn encrypt_op<T>(&self, op: *mut T) -> Result<()> {
-        let ret = ioctl_with_mut_ptr(self, KVM_MEMORY_ENCRYPT_OP(), op);
+        // SAFETY: we trust the kernel and verified parameters
+        let ret = unsafe {
+            ioctl_with_mut_ptr(self, KVM_MEMORY_ENCRYPT_OP(), op)
+        };
         if ret == 0 {
             Ok(())
         } else {

@@ -1,5 +1,7 @@
 [workspace]
-resolver = "2"
+package.edition = "2024"
+package.rust-version = "1.85"
+resolver = "3"
 members = [
     "kvm-bindings",
     "kvm-ioctls",

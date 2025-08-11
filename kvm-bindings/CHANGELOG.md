@@ -2,6 +2,9 @@
 
 ## Upcoming Release
 
+### Changed
+- Rust edition 2024
+
 ## v0.13.0
 
 ### Added

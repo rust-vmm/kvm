@@ -8,6 +8,10 @@
 - [[#334]](https://github.com/rust-vmm/kvm/pull/334) Added support for
   `KVM_HAS_DEVICE_ATTR` and `KVM_SET_DEVICE_ATTR` vm ioctl on aarch64.
 
+## Changed
+
+- Rust edition 2024
+
 ## v0.23.0
 
 ### Added

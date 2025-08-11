@@ -1024,7 +1024,8 @@ impl VcpuFd {
     /// ```
     #[cfg(target_arch = "x86_64")]
     pub unsafe fn set_xsave2(&self, xsave: &Xsave) -> Result<()> {
-        self.set_xsave(&xsave.as_fam_struct_ref().xsave)
+        // SAFETY: we trust the kernel and verified parameters
+        unsafe { self.set_xsave(&xsave.as_fam_struct_ref().xsave) }
     }
 
     /// X86 specific call that returns the vcpu's current "xcrs".
@@ -1558,7 +1559,7 @@ impl VcpuFd {
     /// }
     /// # }
     /// ```
-    pub fn run(&mut self) -> Result<VcpuExit> {
+    pub fn run(&mut self) -> Result<VcpuExit<'_>> {
         // SAFETY: Safe because we know that our file is a vCPU fd and we verify the return result.
         let ret = unsafe { ioctl(self, KVM_RUN()) };
         if ret == 0 {
