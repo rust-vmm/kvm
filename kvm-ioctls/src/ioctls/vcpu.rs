@@ -330,7 +330,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `regs` - general purpose registers. For details check the `kvm_regs` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -391,7 +391,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `sregs` - Special registers. For details check the `kvm_sregs` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -451,7 +451,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `fpu` - FPU configuration. For details check the `kvm_fpu` structure in the
-    ///           [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -570,8 +570,8 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * kvm_enable_cap - KVM capability structure. For details check the `kvm_enable_cap`
-    ///                    structure in the
-    ///                    [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -646,7 +646,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `klapic` - LAPIC state. For details check the `kvm_lapic_state` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     /// # Example
     ///
     /// ```rust
@@ -690,7 +690,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `msrs`  - MSRs (input/output). For details check the `kvm_msrs` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -735,7 +735,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `msrs` - MSRs. For details check the `kvm_msrs` structure in the
-    ///            [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     /// # Example
     ///
     /// ```rust
@@ -876,7 +876,7 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `xsave` - A mutable reference to an [`Xsave`] instance that will be populated with the
-    ///             current vcpu's "xsave struct".
+    ///   current vcpu's "xsave struct".
     ///
     /// # Safety
     ///
@@ -1224,8 +1224,8 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `kvi` - information about preferred CPU target type and recommended features for it.
-    ///           For details check the `kvm_vcpu_init` structure in the
-    ///           [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   For details check the `kvm_vcpu_init` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     /// ```rust
@@ -1314,8 +1314,8 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `reg_list`  - list of registers (input/output). For details check the `kvm_reg_list`
-    ///                 structure in the
-    ///                 [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -1358,8 +1358,8 @@ impl VcpuFd {
     /// # Arguments
     ///
     /// * `debug_struct` - control bitfields and debug registers, depending on the specific architecture.
-    ///             For details check the `kvm_guest_debug` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   For details check the `kvm_guest_debug` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///

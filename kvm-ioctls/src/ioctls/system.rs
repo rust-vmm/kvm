@@ -378,7 +378,7 @@ impl Kvm {
     /// # Arguments
     ///
     /// * `num_entries` - Maximum number of CPUID entries. This function can return less than
-    ///                         this when the hardware does not support so many CPUID entries.
+    ///   this when the hardware does not support so many CPUID entries.
     ///
     /// Returns Error `errno::Error(libc::ENOMEM)` when the input `num_entries` is greater than
     /// `KVM_MAX_CPUID_ENTRIES`.
@@ -407,7 +407,7 @@ impl Kvm {
     /// # Arguments
     ///
     /// * `num_entries` - Maximum number of CPUID entries. This function can return less than
-    ///                         this when the hardware does not support so many CPUID entries.
+    ///   this when the hardware does not support so many CPUID entries.
     ///
     /// Returns Error `errno::Error(libc::ENOMEM)` when the input `num_entries` is greater than
     /// `KVM_MAX_CPUID_ENTRIES`.
@@ -508,7 +508,7 @@ impl Kvm {
     /// # Arguments
     ///
     /// * `msrs`  - MSRs (input/output). For details check the `kvm_msrs` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -597,10 +597,10 @@ impl Kvm {
     /// # Arguments
     ///
     /// * `ipa_size` - Guest VM IPA size, 32 <= ipa_size <= Host_IPA_Limit.
-    ///                The value of `Host_IPA_Limit` may be different between hardware
-    ///                implementations and can be extracted by calling `get_host_ipa_limit`.
-    ///                Possible values can be found in documentation of registers `TCR_EL2`
-    ///                and `VTCR_EL2`.
+    ///   The value of `Host_IPA_Limit` may be different between hardware
+    ///   implementations and can be extracted by calling `get_host_ipa_limit`.
+    ///   Possible values can be found in documentation of registers `TCR_EL2`
+    ///   and `VTCR_EL2`.
     ///
     /// # Example
     ///
@@ -627,7 +627,7 @@ impl Kvm {
     /// `KVM_GET_VCPU_MMAP_SIZE` ioctl.
     ///
     /// * `vm_type` - Platform and architecture specific platform VM type. A value of 0 is the equivalent
-    ///               to using the default VM type.
+    ///   to using the default VM type.
     /// # Example
     ///
     /// ```
