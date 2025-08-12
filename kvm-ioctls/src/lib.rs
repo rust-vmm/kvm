@@ -9,6 +9,7 @@
 #![deny(missing_docs)]
 #![deny(missing_copy_implementations)]
 #![deny(missing_debug_implementations)]
+#![deny(clippy::undocumented_unsafe_blocks)]
 #![warn(clippy::assertions_on_result_states)]
 
 //! A safe wrapper around the kernel's KVM interface.
@@ -65,8 +66,8 @@
 //!     use std::ptr::null_mut;
 //!     use std::slice;
 //!
-//!     use kvm_bindings::kvm_userspace_memory_region;
 //!     use kvm_bindings::KVM_MEM_LOG_DIRTY_PAGES;
+//!     use kvm_bindings::kvm_userspace_memory_region;
 //!
 //!     let mem_size = 0x4000;
 //!     let guest_addr = 0x1000;

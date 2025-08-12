@@ -1,19 +1,18 @@
 // Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-use bindings::{
-    kvm_clock_data, kvm_cpuid2, kvm_cpuid_entry2, kvm_debugregs, kvm_dtable,
+use super::bindings::{
+    kvm_clock_data, kvm_cpuid_entry2, kvm_cpuid2, kvm_debugregs, kvm_dtable,
     kvm_ioapic_state__bindgen_ty_1, kvm_irq_routing, kvm_irq_routing_entry,
     kvm_irq_routing_entry__bindgen_ty_1, kvm_irq_routing_msi__bindgen_ty_1, kvm_irqchip,
     kvm_irqchip__bindgen_ty_1, kvm_lapic_state, kvm_mp_state, kvm_msr_entry, kvm_msrs,
-    kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment, kvm_sregs, kvm_vcpu_events,
-    kvm_xcr, kvm_xcrs, kvm_xsave,
+    kvm_nested_state__bindgen_ty_1, kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment,
+    kvm_sregs, kvm_vcpu_events, kvm_xcr, kvm_xcrs, kvm_xsave,
 };
-use fam_wrappers::kvm_xsave2;
-use kvm_nested_state__bindgen_ty_1;
-use nested::{kvm_nested_state__data, KvmNestedStateBuffer};
+use super::fam_wrappers::kvm_xsave2;
+use super::nested::{KvmNestedStateBuffer, kvm_nested_state__data};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zerocopy::{transmute, FromBytes, FromZeros, Immutable, IntoBytes};
+use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes, transmute};
 
 serde_impls!(
     kvm_regs,
@@ -152,7 +151,6 @@ unsafe impl IntoBytes for kvm_nested_state__data {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bindings::*;
 
     fn is_serde<T: Serialize + for<'de> Deserialize<'de> + Default>() {
         let config = bincode::config::standard();

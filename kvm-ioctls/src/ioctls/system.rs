@@ -4,20 +4,20 @@
 // Portions Copyright 2017 The Chromium OS Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the THIRD-PARTY file.
-use libc::{open, O_CLOEXEC, O_RDWR};
+use libc::{O_CLOEXEC, O_RDWR, open};
 use std::ffi::CStr;
 use std::fs::File;
 use std::os::raw::{c_char, c_ulong};
 use std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
 
 use crate::cap::Cap;
-use crate::ioctls::vm::{new_vmfd, VmFd};
 use crate::ioctls::Result;
+use crate::ioctls::vm::{VmFd, new_vmfd};
 use crate::kvm_ioctls::*;
 #[cfg(target_arch = "aarch64")]
 use kvm_bindings::KVM_VM_TYPE_ARM_IPA_SIZE_MASK;
 #[cfg(target_arch = "x86_64")]
-use kvm_bindings::{CpuId, MsrList, Msrs, KVM_MAX_CPUID_ENTRIES, KVM_MAX_MSR_ENTRIES};
+use kvm_bindings::{CpuId, KVM_MAX_CPUID_ENTRIES, KVM_MAX_MSR_ENTRIES, MsrList, Msrs};
 use vmm_sys_util::errno;
 #[cfg(target_arch = "x86_64")]
 use vmm_sys_util::ioctl::ioctl_with_mut_ptr;
@@ -282,11 +282,7 @@ impl Kvm {
     /// ```
     pub fn get_nr_vcpus(&self) -> usize {
         let x = self.check_extension_int(Cap::NrVcpus);
-        if x > 0 {
-            x as usize
-        } else {
-            4
-        }
+        if x > 0 { x as usize } else { 4 }
     }
 
     /// Returns the maximum allowed memory slots per VM.
@@ -305,11 +301,7 @@ impl Kvm {
     /// ```
     pub fn get_nr_memslots(&self) -> usize {
         let x = self.check_extension_int(Cap::NrMemslots);
-        if x > 0 {
-            x as usize
-        } else {
-            32
-        }
+        if x > 0 { x as usize } else { 32 }
     }
 
     /// Gets the recommended maximum number of VCPUs per VM.
@@ -471,7 +463,7 @@ impl Kvm {
     /// # Example
     ///
     /// ```
-    /// use kvm_bindings::{kvm_msr_entry, Msrs};
+    /// use kvm_bindings::{Msrs, kvm_msr_entry};
     /// use kvm_ioctls::Kvm;
     ///
     /// let kvm = Kvm::new().unwrap();
@@ -513,7 +505,7 @@ impl Kvm {
     /// # Example
     ///
     /// ```
-    /// use kvm_bindings::{kvm_msr_entry, Msrs};
+    /// use kvm_bindings::{Msrs, kvm_msr_entry};
     /// use kvm_ioctls::Kvm;
     ///
     /// let kvm = Kvm::new().unwrap();
@@ -680,7 +672,8 @@ impl Kvm {
     /// ```
     pub unsafe fn create_vmfd_from_rawfd(&self, fd: RawFd) -> Result<VmFd> {
         let run_mmap_size = self.get_vcpu_mmap_size()?;
-        Ok(new_vmfd(File::from_raw_fd(fd), run_mmap_size))
+        // SAFETY: we trust the kernel and verified parameters
+        Ok(new_vmfd(unsafe { File::from_raw_fd(fd) }, run_mmap_size))
     }
 }
 
@@ -720,7 +713,8 @@ impl FromRawFd for Kvm {
     /// ```
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         Kvm {
-            kvm: File::from_raw_fd(fd),
+            // SAFETY: we trust the kernel and verified parameters
+            kvm: unsafe { File::from_raw_fd(fd) },
         }
     }
 }
@@ -729,7 +723,7 @@ impl FromRawFd for Kvm {
 mod tests {
     #![allow(clippy::undocumented_unsafe_blocks)]
     use super::*;
-    use libc::{fcntl, FD_CLOEXEC, F_GETFD};
+    use libc::{F_GETFD, FD_CLOEXEC, fcntl};
     use std::os::fd::IntoRawFd;
     #[cfg(target_arch = "x86_64")]
     use vmm_sys_util::fam::FamStruct;

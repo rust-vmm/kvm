@@ -3,7 +3,7 @@
 
 use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
 
-use arm64::bindings::*;
+use super::bindings::*;
 
 // There is no constant in the kernel as far as the maximum number
 // of registers on arm, but KVM_GET_REG_LIST usually returns around 450.
