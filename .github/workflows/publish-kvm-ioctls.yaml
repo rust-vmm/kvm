@@ -1,0 +1,21 @@
+name: Publish kvm-ioctls to crates.io
+
+on:
+  push:
+    tags: ['kvm-ioctls-v*']  # Triggers when pushing tags starting with 'kvm-ioctls-v'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # environment: release  # Optional: for enhanced security
+    permissions:
+      id-token: write     # Required for OIDC token exchange
+    steps:
+    - uses: actions/checkout@v4
+    - uses: rust-lang/crates-io-auth-action@v1
+      id: auth
+    - run: |
+        cd kvm-ioctls
+        cargo publish
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
