@@ -69,8 +69,8 @@ impl VmFd {
     /// # Arguments
     ///
     /// * `user_memory_region` - Guest physical memory slot. For details check the
-    ///         `kvm_userspace_memory_region` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   `kvm_userspace_memory_region` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Safety
     ///
@@ -124,8 +124,8 @@ impl VmFd {
     /// # Arguments
     ///
     /// * `user_memory_region2` - Guest physical memory slot. For details check the
-    ///             `kvm_userspace_memory_region2` structure in the
-    ///             [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   `kvm_userspace_memory_region2` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Safety
     ///
@@ -378,7 +378,7 @@ impl VmFd {
     /// # Arguments
     ///
     /// * pit_config - PIT configuration. For details check the `kvm_pit_config` structure in the
-    ///                [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     /// # Example
     ///
     /// ```rust
@@ -550,7 +550,7 @@ impl VmFd {
     /// # Arguments
     ///
     /// * kvm_msi - MSI message configuration. For details check the `kvm_msi` structure in the
-    ///                [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     /// # Example
     ///
     /// In this example, the important function signal_msi() calling into
@@ -600,10 +600,10 @@ impl VmFd {
     /// # Arguments
     ///
     /// * kvm_irq_routing - IRQ routing configuration. Describe all routes
-    ///                     associated with GSI entries. For details check
-    ///                     the `kvm_irq_routing` and `kvm_irq_routing_entry`
-    ///                     structures in the
-    ///                     [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   associated with GSI entries. For details check
+    ///   the `kvm_irq_routing` and `kvm_irq_routing_entry`
+    ///   structures in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     /// # Example
     ///
     /// ```rust
@@ -653,11 +653,11 @@ impl VmFd {
     /// # Arguments
     ///
     /// * `fd` - `EventFd` which will be signaled. When signaling, the usual `vmexit` to userspace
-    ///           is prevented.
+    ///   is prevented.
     /// * `addr` - Address being written to.
     /// * `datamatch` - Limits signaling `fd` to only the cases where the value being written is
-    ///                 equal to this parameter. The size of `datamatch` is important and it must
-    ///                 match the expected size of the guest's write.
+    ///   equal to this parameter. The size of `datamatch` is important and it must
+    ///   match the expected size of the guest's write.
     ///
     /// # Example
     ///
@@ -1260,7 +1260,7 @@ impl VmFd {
     /// # Arguments
     ///
     /// * `device`: device configuration. For details check the `kvm_create_device` structure in the
-    ///                [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -1323,8 +1323,8 @@ impl VmFd {
     ///
     /// # Arguments
     /// * `kvi` - CPU target configuration (out). For details check the `kvm_vcpu_init`
-    ///           structure in the
-    ///           [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -1358,8 +1358,8 @@ impl VmFd {
     /// # Arguments
     ///
     /// * kvm_enable_cap - KVM capability structure. For details check the `kvm_enable_cap`
-    ///                    structure in the
-    ///                    [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -1487,8 +1487,8 @@ impl VmFd {
     /// # Arguments
     ///
     /// * kvm_create_guest_memfd - KVM create guest memfd structure. For details check the
-    ///                    `kvm_create_guest_memfd` structure in the
-    ///                    [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   `kvm_create_guest_memfd` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///
@@ -1539,8 +1539,8 @@ impl VmFd {
     /// # Arguments
     ///
     /// * kvm_memory_attributes - KVM set memory attributes structure. For details check the
-    ///                    `kvm_memory_attributes` structure in the
-    ///                    [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///   `kvm_memory_attributes` structure in the
+    ///   [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
     ///
     /// # Example
     ///

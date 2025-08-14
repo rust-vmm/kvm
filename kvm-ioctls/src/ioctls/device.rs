@@ -101,18 +101,18 @@ impl DeviceFd {
     /// # Arguments
     ///
     /// * `device_attr` - The device attribute to be get.
-    ///                   Note: This argument serves as both input and output.
-    ///                   When calling this function, the user should explicitly provide
-    ///                   valid values for the `group` and the `attr` field of the
-    ///                   `kvm_device_attr` structure, and a valid userspace address
-    ///                   (i.e. the `addr` field) to access the returned device attribute
-    ///                   data.
+    ///   Note: This argument serves as both input and output.
+    ///   When calling this function, the user should explicitly provide
+    ///   valid values for the `group` and the `attr` field of the
+    ///   `kvm_device_attr` structure, and a valid userspace address
+    ///   (i.e. the `addr` field) to access the returned device attribute
+    ///   data.
     ///
     /// # Returns
     ///
     /// * Returns the last occured `errno` wrapped in an `Err`.
     /// * `device_attr` - The `addr` field of the `device_attr` structure will point to
-    ///                   the device attribute data.
+    ///   the device attribute data.
     ///
     /// # Safety
     ///
