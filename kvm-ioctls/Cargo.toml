@@ -1,6 +1,6 @@
 [package]
 name = "kvm-ioctls"
-version = "0.23.0"
+version = "0.24.0"
 authors = ["Amazon Firecracker Team <firecracker-maintainers@amazon.com>"]
 description = "Safe wrappers over KVM ioctls"
 repository = "https://github.com/rust-vmm/kvm"
@@ -12,7 +12,7 @@ rust-version.workspace = true
 
 [dependencies]
 libc = "0.2.39"
-kvm-bindings = { path = "../kvm-bindings", version = "0.13.0", features = ["fam-wrappers"] }
+kvm-bindings = { path = "../kvm-bindings", version = "0.14.0", features = ["fam-wrappers"] }
 vmm-sys-util = { workspace = true }
 bitflags = "2.4.1"
 
