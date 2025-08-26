@@ -169,4 +169,5 @@ pub enum Cap {
     NestedState = KVM_CAP_NESTED_STATE,
     #[cfg(target_arch = "x86_64")]
     X2ApicApi = KVM_CAP_X2APIC_API,
+    DirtyLogRing = KVM_CAP_DIRTY_LOG_RING,
 }
