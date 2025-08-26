@@ -2,6 +2,8 @@
 
 ## Upcoming Release
 
+- Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+
 ## v0.24.0
 
 ### Added
