@@ -10,7 +10,8 @@ use std::os::unix::io::AsRawFd;
 use std::ptr::{NonNull, null_mut};
 
 use kvm_bindings::{
-    kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_dirty_gfn, kvm_run, KVM_COALESCED_MMIO_PAGE_OFFSET, KVM_DIRTY_GFN_F_DIRTY, KVM_DIRTY_GFN_F_RESET, KVM_DIRTY_LOG_PAGE_OFFSET
+    KVM_COALESCED_MMIO_PAGE_OFFSET, KVM_DIRTY_GFN_F_DIRTY, KVM_DIRTY_GFN_F_RESET,
+    KVM_DIRTY_LOG_PAGE_OFFSET, kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_dirty_gfn, kvm_run,
 };
 use vmm_sys_util::errno;
 
@@ -31,7 +32,7 @@ pub type Result<T> = std::result::Result<T, errno::Error>;
 
 /// A wrapper around the KVM dirty log ring page.
 #[derive(Debug)]
-pub struct KvmDirtyLogRing {
+pub(crate) struct KvmDirtyLogRing {
     /// Next potentially dirty guest frame number slot index
     next_dirty: u64,
     /// Memory-mapped array of dirty guest frame number entries
@@ -40,6 +41,12 @@ pub struct KvmDirtyLogRing {
     mask: u64,
 }
 
+// SAFETY: Send and Sync aren't automatically inherited for the raw address pointer
+// to the shared memory. Accessing that pointer is only done through the stateless
+// interface which allows the object to be shared by multiple threads without a decrease in
+// safety.
+unsafe impl Send for KvmDirtyLogRing {}
+unsafe impl Sync for KvmDirtyLogRing {}
 impl KvmDirtyLogRing {
     /// Maps the KVM dirty log ring from the vCPU file descriptor.
     ///
@@ -80,6 +87,19 @@ impl KvmDirtyLogRing {
     /// Flushes dirty ring by marking all dirty GFNs as harvested
     pub fn flush_dirty_gfns(&mut self) {
         self.for_each(|_| {});
+    }
+}
+
+impl Drop for KvmDirtyLogRing {
+    fn drop(&mut self) {
+        // SAFETY: This is safe because we mmap the page ourselves, and nobody
+        // else is holding a reference to it.
+        unsafe {
+            libc::munmap(
+                self.gfns.as_ptr().cast(),
+                (self.mask + 1) as usize * std::mem::size_of::<kvm_dirty_gfn>(),
+            );
+        }
     }
 }
 

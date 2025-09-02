@@ -2106,8 +2106,7 @@ impl VcpuFd {
         }
     }
 
-    /// Maps the coalesced MMIO ring page. This allows reading entries from
-    /// the ring via [`coalesced_mmio_read()`](VcpuFd::coalesced_mmio_read).
+    /// Maps the KVM dirty log ring. 
     ///
     /// # Returns
     ///
