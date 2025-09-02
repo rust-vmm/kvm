@@ -1915,8 +1915,8 @@ impl VmFd {
         Ok(())
     }
 
-    /// Resets all vCPU's dirty log rings.
-    ///
+    /// Resets all vCPU's dirty log rings. This notifies the kernel that pages have been harvested
+    /// from the dirty ring and the corresponding pages can be reprotected.
     ///
     /// # Example
     ///
