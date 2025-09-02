@@ -32,7 +32,7 @@ pub type Result<T> = std::result::Result<T, errno::Error>;
 
 /// A wrapper around the KVM dirty log ring page.
 #[derive(Debug)]
-pub(crate) struct KvmDirtyLogRing {
+pub struct KvmDirtyLogRing {
     /// Next potentially dirty guest frame number slot index
     next_dirty: u64,
     /// Memory-mapped array of dirty guest frame number entries
