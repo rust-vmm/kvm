@@ -1930,14 +1930,14 @@ impl VmFd {
     /// }
     /// ```
     ///
-    pub fn reset_dirty_rings(&self) -> Result<()> {
+    pub fn reset_dirty_rings(&self) -> Result<c_int> {
         // SAFETY: Safe because we know that our file is a KVM fd and that the request is one of
         // the ones defined by kernel.
         let ret = unsafe { ioctl(self, KVM_RESET_DIRTY_RINGS()) };
         if ret < 0 {
             Err(errno::Error::last())
         } else {
-            Ok(())
+            Ok(ret)
         }
     }
 

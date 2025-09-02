@@ -10,7 +10,7 @@ use std::os::unix::io::AsRawFd;
 use std::ptr::{NonNull, null_mut};
 
 use kvm_bindings::{
-    KVM_COALESCED_MMIO_PAGE_OFFSET, kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_run,
+    kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_dirty_gfn, kvm_run, KVM_COALESCED_MMIO_PAGE_OFFSET, KVM_DIRTY_GFN_F_DIRTY, KVM_DIRTY_GFN_F_RESET, KVM_DIRTY_LOG_PAGE_OFFSET
 };
 use vmm_sys_util::errno;
 
@@ -28,6 +28,78 @@ pub mod vm;
 /// This typedef is generally used to avoid writing out errno::Error directly and
 /// is otherwise a direct mapping to Result.
 pub type Result<T> = std::result::Result<T, errno::Error>;
+
+/// A wrapper around the KVM dirty log ring page.
+#[derive(Debug)]
+pub struct KvmDirtyLogRing {
+    /// Next potentially dirty guest frame number slot index
+    next_dirty: u64,
+    /// Memory-mapped array of dirty guest frame number entries
+    gfns: NonNull<kvm_dirty_gfn>,
+    /// Ring size mask (size-1) for efficient modulo operations
+    mask: u64,
+}
+
+impl KvmDirtyLogRing {
+    /// Maps the KVM dirty log ring from the vCPU file descriptor.
+    ///
+    /// # Arguments
+    /// * `fd` - vCPU file descriptor to mmap from.
+    /// * `size` - Size of memory region in bytes.
+    pub(crate) fn mmap_from_fd<F: AsRawFd>(fd: &F, bytes: usize) -> Result<Self> {
+        let offset: u64 = 0x1000 * KVM_DIRTY_LOG_PAGE_OFFSET as u64;
+        if bytes % std::mem::size_of::<kvm_dirty_gfn>() != 0 {
+            // Size of dirty ring in bytes must be multiples of slot size
+            return Err(errno::Error::new(libc::EINVAL));
+        }
+        let slots = bytes / std::mem::size_of::<kvm_dirty_gfn>();
+        if slots & (slots - 1) != 0 {
+            // Number of slots needs to be power of two
+            return Err(errno::Error::new(libc::EINVAL));
+        }
+
+        let gfns = unsafe {
+            NonNull::<kvm_dirty_gfn>::new(libc::mmap(
+                null_mut(),
+                bytes,
+                libc::PROT_READ | libc::PROT_WRITE,
+                libc::MAP_SHARED,
+                fd.as_raw_fd(),
+                offset as i64,
+            ) as *mut kvm_dirty_gfn)
+            .filter(|addr| addr.as_ptr() != libc::MAP_FAILED as *mut kvm_dirty_gfn)
+            .ok_or_else(|| errno::Error::last())?
+        };
+        return Ok(Self {
+            next_dirty: 0,
+            gfns,
+            mask: (slots - 1) as u64,
+        });
+    }
+
+    /// Flushes dirty ring by marking all dirty GFNs as harvested
+    pub fn flush_dirty_gfns(&mut self) {
+        self.for_each(|_| {});
+    }
+}
+
+impl Iterator for KvmDirtyLogRing {
+    type Item = (u32, u64);
+    fn next(&mut self) -> Option<Self::Item> {
+        let i = self.next_dirty & self.mask;
+        unsafe {
+            let gfn = self.gfns.add(i as usize).as_mut();
+            if (*gfn).flags & KVM_DIRTY_GFN_F_DIRTY == 0 {
+                // next_dirty stays the same, it will become the next dirty element
+                return None;
+            } else {
+                self.next_dirty += 1;
+                (*gfn).flags ^= KVM_DIRTY_GFN_F_RESET;
+                return Some(((*gfn).slot, (*gfn).offset));
+            }
+        }
+    }
+}
 
 /// A wrapper around the coalesced MMIO ring page.
 #[derive(Debug)]
