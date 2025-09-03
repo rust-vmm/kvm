@@ -41,10 +41,7 @@ pub struct KvmDirtyLogRing {
     mask: u64,
 }
 
-// SAFETY: Send and Sync aren't automatically inherited for the raw address pointer
-// to the shared memory. Accessing that pointer is only done through the stateless
-// interface which allows the object to be shared by multiple threads without a decrease in
-// safety.
+// SAFETY: TBD
 unsafe impl Send for KvmDirtyLogRing {}
 unsafe impl Sync for KvmDirtyLogRing {}
 impl KvmDirtyLogRing {
@@ -54,17 +51,29 @@ impl KvmDirtyLogRing {
     /// * `fd` - vCPU file descriptor to mmap from.
     /// * `size` - Size of memory region in bytes.
     pub(crate) fn mmap_from_fd<F: AsRawFd>(fd: &F, bytes: usize) -> Result<Self> {
-        let offset: u64 = 0x1000 * KVM_DIRTY_LOG_PAGE_OFFSET as u64;
+        // SAFETY: We trust the sysconf libc function and we're calling it
+        // with a correct parameter.
+        let page_size = match unsafe { libc::sysconf(libc::_SC_PAGESIZE) } {
+            -1 => return Err(errno::Error::last()),
+            ps => ps as usize,
+        };
+
+        let offset  = page_size * KVM_DIRTY_LOG_PAGE_OFFSET as usize;
+
         if bytes % std::mem::size_of::<kvm_dirty_gfn>() != 0 {
             // Size of dirty ring in bytes must be multiples of slot size
             return Err(errno::Error::new(libc::EINVAL));
         }
         let slots = bytes / std::mem::size_of::<kvm_dirty_gfn>();
         if slots & (slots - 1) != 0 {
-            // Number of slots needs to be power of two
+            // Number of slots must be power of two
             return Err(errno::Error::new(libc::EINVAL));
         }
 
+        // SAFETY: KVM guarantees that there is a page at offset
+        // KVM_DIRTY_LOG_PAGE_OFFSET * PAGE_SIZE if the appropriate
+        // capability is available. If it is not, the call will simply
+        // fail.
         let gfns = unsafe {
             NonNull::<kvm_dirty_gfn>::new(libc::mmap(
                 null_mut(),
