@@ -2118,12 +2118,15 @@ impl VcpuFd {
     ///
     /// ```rust
     /// # extern crate kvm_ioctls;
+    /// # extern crate kvm_bindings;
     /// # use kvm_ioctls::{Cap, Kvm};
+    /// # use kvm_bindings::{KVM_CAP_DIRTY_LOG_RING};
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let mut vcpu = vm.create_vcpu(0).unwrap();
+    /// let max_supported_size = vm.check_extension_raw(KVM_CAP_DIRTY_LOG_RING.into());
     /// if kvm.check_extension(Cap::DirtyLogRing) {
-    ///     vcpu.coalesced_mmio_ring().unwrap();
+    ///     vcpu.map_dirty_log_ring(max_supported_size as usize).unwrap();
     /// }
     /// ```
     pub fn map_dirty_log_ring(&mut self, bytes: usize) -> Result<()> {
