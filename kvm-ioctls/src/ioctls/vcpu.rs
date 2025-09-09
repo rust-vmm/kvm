@@ -184,6 +184,10 @@ pub enum VcpuExit<'a> {
         /// size
         size: u64,
     },
+    /// Corresponds to SBI_EXT_0_1_CONSOLE_PUTCHAR.
+    SbiExt0_1ConsolePutchar(u64),
+    /// Corresponds to SBI_EXT_0_1_CONSOLE_GETCHAR.
+    SbiExt0_1ConsoleGetchar(&'a mut [u64]),
     /// Corresponds to an exit reason that is unknown from the current version
     /// of the kvm-ioctls crate. Let the consumer decide about what to do with
     /// it.
@@ -1688,6 +1692,26 @@ impl VcpuFd {
                     Ok(VcpuExit::IoapicEoi(eoi.vector))
                 }
                 KVM_EXIT_HYPERV => Ok(VcpuExit::Hyperv),
+                #[cfg(target_arch = "riscv64")]
+                KVM_EXIT_RISCV_SBI => {
+                    // SAFETY: Safe because the exit_reason (which comes from the kernel) told us
+                    // which union field to use and the type of extension_id is 'enum sbi_ext_id'.
+                    match unsafe { run.__bindgen_anon_1.riscv_sbi.extension_id } as u32 {
+                        SBI_EXT_0_1_CONSOLE_PUTCHAR => {
+                            // SAFETY: Safe because the exit_reason (which comes from the kernel) told us
+                            // which union field to use
+                            let ch = unsafe { run.__bindgen_anon_1.riscv_sbi.args[0] };
+                            Ok(VcpuExit::SbiExt0_1ConsolePutchar(ch))
+                        }
+                        SBI_EXT_0_1_CONSOLE_GETCHAR => {
+                            // SAFETY: Safe because the exit_reason (which comes from the kernel) told us
+                            // which union field to use
+                            let ch = unsafe { &mut run.__bindgen_anon_1.riscv_sbi.ret[..1] };
+                            Ok(VcpuExit::SbiExt0_1ConsoleGetchar(ch))
+                        }
+                        r => Ok(VcpuExit::Unsupported(r)),
+                    }
+                }
                 r => Ok(VcpuExit::Unsupported(r)),
             }
         } else {
