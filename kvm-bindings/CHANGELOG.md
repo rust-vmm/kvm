@@ -2,6 +2,10 @@
 
 ## Upcoming Release
 
+### Added
+
+- Added bindings for riscv64 sbi ecall interface
+
 ## v0.14.0
 
 ### Changed
