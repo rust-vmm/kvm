@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
+use vmm_sys_util::generate_fam_struct_impl;
 
 use super::bindings::*;
 

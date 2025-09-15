@@ -9,18 +9,6 @@
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-#[cfg(feature = "fam-wrappers")]
-#[macro_use]
-extern crate vmm_sys_util;
-
-#[cfg(feature = "serde")]
-extern crate serde;
-
-#[cfg(feature = "serde")]
-extern crate zerocopy;
-
-extern crate core;
-
 #[cfg(feature = "serde")]
 #[macro_use]
 mod serialize;

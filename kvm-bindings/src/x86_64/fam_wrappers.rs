@@ -1,9 +1,9 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
-
 use super::bindings::*;
+use vmm_sys_util::fam::{FamStruct, FamStructWrapper};
+use vmm_sys_util::generate_fam_struct_impl;
 
 /// Maximum number of CPUID entries that can be returned by a call to KVM ioctls.
 ///
