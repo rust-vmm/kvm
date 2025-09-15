@@ -84,9 +84,6 @@ impl VmFd {
     /// # Example
     ///
     /// ```rust
-    /// # extern crate kvm_ioctls;
-    /// extern crate kvm_bindings;
-    ///
     /// use kvm_bindings::kvm_userspace_memory_region;
     /// use kvm_ioctls::Kvm;
     ///
@@ -142,10 +139,7 @@ impl VmFd {
     ///
     /// On x86, create a `KVM_X86_SW_PROTECTED_VM` with a memslot that has a `guest_memfd` associated.
     ///
-    /// ```rust
-    /// # extern crate kvm_ioctls;
-    /// extern crate kvm_bindings;
-    ///
+    /// ```rust///
     /// use kvm_bindings::{
     ///     KVM_CAP_GUEST_MEMFD, KVM_CAP_USER_MEMORY2, KVM_MEM_GUEST_MEMFD, kvm_create_guest_memfd,
     ///     kvm_userspace_memory_region2,
@@ -244,7 +238,6 @@ impl VmFd {
     /// # Example
     ///
     /// ```rust
-    /// # extern crate kvm_ioctls;
     /// # use kvm_ioctls::Kvm;
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
