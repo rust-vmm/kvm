@@ -2030,7 +2030,8 @@ impl VcpuFd {
         match ret {
             0 => {
                 let size = buffer.size as usize;
-                if size == size_of::<kvm_nested_state /* just the empty header */>() {
+                let just_hdr_size = size_of::<kvm_nested_state>();
+                if size <= just_hdr_size {
                     Ok(None)
                 } else {
                     Ok(Some(NonZeroUsize::new(size).unwrap()))
