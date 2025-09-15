@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.12.1]
+
+### Added
+
+- Added `KvmNestedStateBuffer`
+
 ### Added
 
 ### Changed

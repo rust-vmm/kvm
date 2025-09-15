@@ -2,6 +2,13 @@
 
 ## Upcoming Release
 
+## v0.22.1
+
+### Added
+
+- Upgrade kvm-bindings to v0.12.1
+- `Vcpu::get_nested_state()` and `Vcpu::set_nested_state()`
+
 ## v0.22.0
 
 ### Changed
