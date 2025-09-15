@@ -8,6 +8,7 @@
 //! Declares necessary ioctls specific to their platform.
 
 use kvm_bindings::*;
+use vmm_sys_util::{ioctl_io_nr, ioctl_ior_nr, ioctl_iow_nr, ioctl_iowr_nr};
 
 // Ioctls for /dev/kvm.
 

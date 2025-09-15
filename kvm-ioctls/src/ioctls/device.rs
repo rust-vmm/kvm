@@ -51,8 +51,6 @@ impl DeviceFd {
     /// upstreamed. Disabling VFIO device test for RISC-V at the time being.
     ///
     /// ```rust
-    /// # extern crate kvm_ioctls;
-    /// # extern crate kvm_bindings;
     /// # use kvm_ioctls::Kvm;
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
@@ -124,8 +122,6 @@ impl DeviceFd {
     /// Getting the number of IRQs for a GICv2 device on an aarch64 platform
     ///
     /// ```rust
-    /// # extern crate kvm_ioctls;
-    /// # extern crate kvm_bindings;
     /// # use kvm_ioctls::Kvm;
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();

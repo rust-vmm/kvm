@@ -55,9 +55,6 @@
 //!
 //!
 //! ```rust
-//! extern crate kvm_ioctls;
-//! extern crate kvm_bindings;
-//!
 //! use kvm_ioctls::VcpuExit;
 //! use kvm_ioctls::{Kvm, VcpuFd, VmFd};
 //!
@@ -231,11 +228,6 @@
 //!     }
 //! }
 //! ```
-
-extern crate kvm_bindings;
-extern crate libc;
-#[macro_use]
-extern crate vmm_sys_util;
 
 #[macro_use]
 mod kvm_ioctls;
