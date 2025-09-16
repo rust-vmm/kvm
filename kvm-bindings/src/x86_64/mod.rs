@@ -6,6 +6,8 @@ pub mod bindings;
 #[cfg(feature = "fam-wrappers")]
 pub mod fam_wrappers;
 
+pub mod nested;
+
 #[cfg(feature = "serde")]
 mod serialize;
 

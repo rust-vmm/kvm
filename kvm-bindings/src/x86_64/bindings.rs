@@ -1999,6 +1999,10 @@ impl Default for kvm_vmx_nested_state_data {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_vmx_nested_state_hdr {
     pub vmxon_pa: __u64,
     pub vmcs12_pa: __u64,
@@ -2009,6 +2013,10 @@ pub struct kvm_vmx_nested_state_hdr {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_vmx_nested_state_hdr__bindgen_ty_1 {
     pub flags: __u16,
 }
@@ -2065,6 +2073,10 @@ impl Default for kvm_svm_nested_state_data {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::FromBytes)
+)]
 pub struct kvm_svm_nested_state_hdr {
     pub vmcb_pa: __u64,
 }
@@ -2087,6 +2099,7 @@ pub struct kvm_nested_state {
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(zerocopy::Immutable, zerocopy::FromBytes))]
 pub union kvm_nested_state__bindgen_ty_1 {
     pub vmx: kvm_vmx_nested_state_hdr,
     pub svm: kvm_svm_nested_state_hdr,
