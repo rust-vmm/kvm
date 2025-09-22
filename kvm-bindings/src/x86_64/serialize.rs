@@ -9,6 +9,7 @@ use super::bindings::{
     kvm_nested_state__bindgen_ty_1, kvm_pit_channel_state, kvm_pit_state2, kvm_regs, kvm_segment,
     kvm_sregs, kvm_vcpu_events, kvm_xcr, kvm_xcrs, kvm_xsave,
 };
+#[cfg(feature = "fam-wrappers")]
 use super::fam_wrappers::kvm_xsave2;
 use super::nested::{KvmNestedStateBuffer, kvm_nested_state__data};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -33,12 +34,14 @@ serde_impls!(
     kvm_msrs,
     kvm_cpuid2,
     kvm_xsave,
-    kvm_xsave2,
     kvm_irqchip,
     kvm_irq_routing,
     kvm_irq_routing_entry,
     KvmNestedStateBuffer
 );
+
+#[cfg(feature = "fam-wrappers")]
+serde_impls!(kvm_xsave2);
 
 // SAFETY: zerocopy's derives explicitly disallow deriving for unions where
 // the fields have different sizes, due to the smaller fields having padding.
@@ -200,6 +203,7 @@ mod tests {
         is_serde::<kvm_vcpu_events>();
         is_serde::<kvm_debugregs>();
         is_serde::<kvm_xsave>();
+        #[cfg(feature = "fam-wrappers")]
         is_serde::<kvm_xsave2>();
         is_serde::<kvm_xcr>();
         is_serde::<kvm_xcrs>();
@@ -235,6 +239,7 @@ mod tests {
         is_serde_json::<kvm_vcpu_events>();
         is_serde_json::<kvm_debugregs>();
         is_serde_json::<kvm_xsave>();
+        #[cfg(feature = "fam-wrappers")]
         is_serde_json::<kvm_xsave2>();
         is_serde_json::<kvm_xcr>();
         is_serde_json::<kvm_xcrs>();
