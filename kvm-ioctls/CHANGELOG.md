@@ -3,6 +3,7 @@
 ## Upcoming Release
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+- Handle console riscv64 sbi call
 
 ## v0.24.0
 

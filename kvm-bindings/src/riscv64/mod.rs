@@ -7,6 +7,7 @@
 pub mod bindings;
 #[cfg(feature = "fam-wrappers")]
 pub mod fam_wrappers;
+pub mod sbi_bindings;
 
 #[cfg(feature = "serde")]
 mod serialize;
@@ -14,3 +15,4 @@ mod serialize;
 pub use self::bindings::*;
 #[cfg(feature = "fam-wrappers")]
 pub use self::fam_wrappers::*;
+pub use self::sbi_bindings::*;
