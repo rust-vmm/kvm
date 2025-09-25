@@ -1908,6 +1908,32 @@ impl VmFd {
         Ok(())
     }
 
+    /// Resets all vCPU's dirty log rings. This notifies the kernel that pages have been harvested
+    /// from the dirty ring and the corresponding pages can be reprotected.
+    ///
+    /// # Example
+    ///
+    ///  ```rust
+    /// # extern crate kvm_ioctls;
+    /// # use kvm_ioctls::{Cap, Kvm};
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// if kvm.check_extension(Cap::DirtyLogRing) {
+    ///     vm.reset_dirty_rings().unwrap();
+    /// }
+    /// ```
+    ///
+    pub fn reset_dirty_rings(&self) -> Result<c_int> {
+        // SAFETY: Safe because we know that our file is a KVM fd and that the request is one of
+        // the ones defined by kernel.
+        let ret = unsafe { ioctl(self, KVM_RESET_DIRTY_RINGS()) };
+        if ret < 0 {
+            Err(errno::Error::last())
+        } else {
+            Ok(ret)
+        }
+    }
+
     /// Sets a specified piece of vm configuration and/or state.
     ///
     /// See the documentation for `KVM_SET_DEVICE_ATTR` in

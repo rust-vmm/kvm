@@ -3,6 +3,7 @@
 ## Upcoming Release
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+- Added support for dirty log ring interface introducing `VcpuFd::reset_dirty_rings`, `KvmDirtyLogRing`
 
 ## v0.24.0
 
