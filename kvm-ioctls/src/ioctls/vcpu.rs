@@ -184,6 +184,8 @@ pub enum VcpuExit<'a> {
         /// size
         size: u64,
     },
+    /// Corresponds to KVM_EXIT_RISCV_SBI
+    RiscvSbi(&'a mut kvm_run__bindgen_ty_1__bindgen_ty_24),
     /// Corresponds to an exit reason that is unknown from the current version
     /// of the kvm-ioctls crate. Let the consumer decide about what to do with
     /// it.
@@ -1641,6 +1643,13 @@ impl VcpuFd {
                     Ok(VcpuExit::IoapicEoi(eoi.vector))
                 }
                 KVM_EXIT_HYPERV => Ok(VcpuExit::Hyperv),
+                #[cfg(target_arch = "riscv64")]
+                KVM_EXIT_RISCV_SBI => {
+                    // SAFETY: Safe because the exit_reason (which comes from the kernel) told us
+                    // which union field to use.
+                    let riscv_sbi = unsafe { &mut run.__bindgen_anon_1.riscv_sbi };
+                    Ok(VcpuExit::RiscvSbi(riscv_sbi))
+                }
                 r => Ok(VcpuExit::Unsupported(r)),
             }
         } else {
