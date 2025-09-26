@@ -3,6 +3,7 @@
 ## Upcoming Release
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+- Return riscv_sbi to VMM for further process.
 
 ## v0.24.0
 

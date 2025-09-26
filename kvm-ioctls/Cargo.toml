@@ -15,6 +15,7 @@ libc = "0.2.39"
 kvm-bindings = { path = "../kvm-bindings", version = "0.14.0", features = ["fam-wrappers"] }
 vmm-sys-util = { workspace = true }
 bitflags = "2.4.1"
+sbi-spec = { version = "0.0.8", features = ["legacy",]}
 
 [dev-dependencies]
 byteorder = "1.2.1"
