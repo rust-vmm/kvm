@@ -2572,6 +2572,7 @@ mod tests {
     #[cfg(target_arch = "riscv64")]
     #[test]
     fn test_run_code() {
+        use sbi_spec::legacy::*;
         use std::io::Write;
 
         let kvm = Kvm::new().unwrap();
@@ -2583,6 +2584,25 @@ mod tests {
             0x03, 0xa5, 0x0c, 0x00, // lw   a0, 0(s9);  test MMIO read
             0x93, 0x05, 0x70, 0x60, // li   a1, 0x0607;
             0x23, 0xa0, 0xbc, 0x00, // sw   a1, 0(s9);  test MMIO write
+            //sbi_console_getchar
+            0x01, 0x45, // li   a0, 0
+            0x81, 0x45, // li   a1, 0
+            0x01, 0x46, // li   a2, 0
+            0x81, 0x46, // li   a3, 0
+            0x01, 0x47, // li   a4, 0
+            0x81, 0x47, // li   a5, 0
+            0x01, 0x48, // li   a6, 0
+            0x89, 0x48, // li   a7, 2
+            0x73, 0x00, 0x00, 0x00, //ecall
+            //sbi_console_putchar
+            0x81, 0x45, // li   a1, 0
+            0x01, 0x46, // li   a2, 0
+            0x81, 0x46, // li   a3, 0
+            0x01, 0x47, // li   a4, 0
+            0x81, 0x47, // li   a5, 0
+            0x01, 0x48, // li   a6, 0
+            0x85, 0x48, // li   a7, 1
+            0x73, 0x00, 0x00, 0x00, //ecall
             0x6f, 0x00, 0x00, 0x00, // j .; shouldn't get here, but if so loop forever
         ];
 
@@ -2654,7 +2674,24 @@ mod tests {
                         .map(|page| page.count_ones())
                         .sum();
                     assert_eq!(dirty_pages, 1);
+                }
+                VcpuExit::RiscvSbi(riscv_sbi) => {
+                    match riscv_sbi.extension_id as usize {
+                        LEGACY_CONSOLE_GETCHAR => {
+                            // SAFETY: Safe because the extension_id (which comes from the kernel) told us
+                            // ow to use riscv_sbi
+                            let ch = &mut riscv_sbi.ret[..1];
+                            ch[0] = 0x2a;
+                        }
+                        LEGACY_CONSOLE_PUTCHAR => {
+                            // SAFETY: Safe because the extension_id (which comes from the kernel) told us
+                            // how to use riscv_sbi
+                            let ch = riscv_sbi.args[0];
+                            assert_eq!(ch, 0x2a);
                             break;
+                        }
+                        _ => panic!("unexpected extension_id: {:?}", riscv_sbi.extension_id),
+                    }
                 }
                 r => panic!("unexpected exit reason: {:?}", r),
             }
