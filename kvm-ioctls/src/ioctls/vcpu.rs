@@ -1960,8 +1960,6 @@ impl VcpuFd {
     ///     // Next, serialize the actual state into a file or so.
     /// }
     /// ```
-    ///
-    /// [`Kvm::check_extension_int`]: kvm_ioctls::Kvm::check_extension_int
     #[cfg(target_arch = "x86_64")]
     pub fn nested_state(
         &self,
