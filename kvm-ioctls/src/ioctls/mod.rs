@@ -8,9 +8,11 @@
 use std::mem::size_of;
 use std::os::unix::io::AsRawFd;
 use std::ptr::{NonNull, null_mut};
+use std::sync::atomic::{Ordering, fence};
 
 use kvm_bindings::{
-    KVM_COALESCED_MMIO_PAGE_OFFSET, kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_run,
+    KVM_COALESCED_MMIO_PAGE_OFFSET, KVM_DIRTY_GFN_F_DIRTY, KVM_DIRTY_GFN_F_RESET,
+    KVM_DIRTY_LOG_PAGE_OFFSET, kvm_coalesced_mmio, kvm_coalesced_mmio_ring, kvm_dirty_gfn, kvm_run,
 };
 use vmm_sys_util::errno;
 
@@ -28,6 +30,110 @@ pub mod vm;
 /// This typedef is generally used to avoid writing out errno::Error directly and
 /// is otherwise a direct mapping to Result.
 pub type Result<T> = std::result::Result<T, errno::Error>;
+
+/// A wrapper around the KVM dirty log ring page.
+#[derive(Debug)]
+pub(crate) struct KvmDirtyLogRing {
+    /// Next potentially dirty guest frame number slot index
+    next_dirty: u64,
+    /// Memory-mapped array of dirty guest frame number entries
+    gfns: NonNull<kvm_dirty_gfn>,
+    /// Ring size mask (size-1) for efficient modulo operations
+    mask: u64,
+}
+
+impl KvmDirtyLogRing {
+    /// Maps the KVM dirty log ring from the vCPU file descriptor.
+    ///
+    /// # Arguments
+    /// * `fd` - vCPU file descriptor to mmap from.
+    /// * `size` - Size of memory region in bytes.
+    pub(crate) fn mmap_from_fd<F: AsRawFd>(fd: &F, bytes: usize) -> Result<Self> {
+        // SAFETY: We trust the sysconf libc function and we're calling it
+        // with a correct parameter.
+        let page_size = match unsafe { libc::sysconf(libc::_SC_PAGESIZE) } {
+            -1 => return Err(errno::Error::last()),
+            ps => ps as usize,
+        };
+
+        let offset = page_size * KVM_DIRTY_LOG_PAGE_OFFSET as usize;
+
+        if bytes % std::mem::size_of::<kvm_dirty_gfn>() != 0 {
+            // Size of dirty ring in bytes must be multiples of slot size
+            return Err(errno::Error::new(libc::EINVAL));
+        }
+        let slots = bytes / std::mem::size_of::<kvm_dirty_gfn>();
+        if !slots.is_power_of_two() {
+            // Number of slots must be power of two
+            return Err(errno::Error::new(libc::EINVAL));
+        }
+
+        // SAFETY: KVM guarantees that there is a page at offset
+        // KVM_DIRTY_LOG_PAGE_OFFSET * PAGE_SIZE if the appropriate
+        // capability is available. If it is not, the call will simply
+        // fail.
+        let gfns = unsafe {
+            NonNull::<kvm_dirty_gfn>::new(libc::mmap(
+                null_mut(),
+                bytes,
+                libc::PROT_READ | libc::PROT_WRITE,
+                libc::MAP_SHARED,
+                fd.as_raw_fd(),
+                offset as i64,
+            ) as *mut kvm_dirty_gfn)
+            .filter(|addr| addr.as_ptr() != libc::MAP_FAILED as *mut kvm_dirty_gfn)
+            .ok_or_else(errno::Error::last)?
+        };
+        Ok(Self {
+            next_dirty: 0,
+            gfns,
+            mask: (slots - 1) as u64,
+        })
+    }
+}
+
+impl Drop for KvmDirtyLogRing {
+    fn drop(&mut self) {
+        // SAFETY: This is safe because we mmap the page ourselves, and nobody
+        // else is holding a reference to it.
+        unsafe {
+            libc::munmap(
+                self.gfns.as_ptr().cast(),
+                (self.mask + 1) as usize * std::mem::size_of::<kvm_dirty_gfn>(),
+            );
+        }
+    }
+}
+
+impl Iterator for KvmDirtyLogRing {
+    type Item = (u32, u64);
+    fn next(&mut self) -> Option<Self::Item> {
+        let i = self.next_dirty & self.mask;
+        // SAFETY: i is not larger than mask, thus is a valid offset into self.gfns,
+        // therefore this operation produces a valid pointer to a kvm_dirty_gfn
+        let gfn_ptr = unsafe { self.gfns.add(i as usize).as_ptr() };
+
+        fence(Ordering::Acquire);
+
+        // SAFETY: Can read a valid pointer to a kvm_dirty_gfn
+        let gfn = unsafe { gfn_ptr.read_volatile() };
+
+        if gfn.flags & KVM_DIRTY_GFN_F_DIRTY == 0 {
+            // next_dirty stays the same, it will become the next dirty element
+            None
+        } else {
+            self.next_dirty += 1;
+            let mut updated_gfn = gfn;
+            updated_gfn.flags ^= KVM_DIRTY_GFN_F_RESET;
+            // SAFETY: Can write to a valid pointer to a kvm_dirty_gfn
+            unsafe {
+                gfn_ptr.write_volatile(updated_gfn);
+            };
+            fence(Ordering::Release);
+            Some((gfn.slot, gfn.offset))
+        }
+    }
+}
 
 /// A wrapper around the coalesced MMIO ring page.
 #[derive(Debug)]
