@@ -27,3 +27,7 @@ pub use self::arm64::*;
 mod riscv64;
 #[cfg(target_arch = "riscv64")]
 pub use self::riscv64::*;
+
+// linux defines these based on _BITUL macros and bindgen fails to generate them
+pub const KVM_DIRTY_GFN_F_DIRTY: u32 = 0b1;
+pub const KVM_DIRTY_GFN_F_RESET: u32 = 0b10;

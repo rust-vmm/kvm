@@ -5,6 +5,27 @@
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
 - [[#359]](https://github.com/rust-vmm/kvm/pull/359) Add support for `KVM_SET_MSR_FILTER` vm ioctl on x86_64.
 
+### Fixed
+
+- Fixed `VmFd::enable_cap` available for all architectures
+
+### Added
+
+- Added `KvmDirtyLogRing` structure to mmap the dirty log ring.
+- Added `KVM_DIRTY_GFN_F_DIRTY` and `KVM_DIRTY_GFN_F_RESET` bitflags.
+- Added `KvmDirtyLogRing` iterator type for accessing dirty log entries.
+- Added `dirty_log_ring` field to `VcpuFd` to access per-vCpu dirty rings.
+- Inserted fences in KvmDirtyLogRing iterator `next` for architectures with weak memory consistency that require Acquire/Release
+- Added `DirtyLogRingInfo` struct and `dirty_log_ring_info` field to `VmFd` to
+  track dirty ring configuration.
+- Added `check_maximum_dirty_log_ring_size` that checks the maximum dirty log ring size
+  supported by the kernel
+- Added `enable_dirty_log_ring` function on `VmFd` to check corresponding 
+  capabilities and enable KVM's dirty log ring.
+- Added `VcpuFd::dirty_log_ring_iter()` to iterate over dirty guest frame numbers.
+- Added `VmFd::reset_dirty_rings()` to reset all dirty rings for the VM.
+- Added `VcpuExit::DirtyRingFull` for `KVM_EXIT_DIRTY_RING_FULL`.
+
 ## v0.24.0
 
 ### Added
