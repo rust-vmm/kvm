@@ -45,9 +45,9 @@ impl DeviceFd {
     ///
     /// Configuring a VFIO device using `set_device_attr`. Note that VFIO
     /// devices are not yet available on RISC-V The patch for QEMU:
-    /// https://lore.kernel.org/all/20240903201633.93182-1-dbarboza@ventanamicro.com/
+    /// <https://lore.kernel.org/all/20240903201633.93182-1-dbarboza@ventanamicro.com/>
     /// and patch for linux kernel
-    /// https://github.com/ventanamicro/linux/tree/dev-upstream are both not
+    /// <https://github.com/ventanamicro/linux/tree/dev-upstream> are both not
     /// upstreamed. Disabling VFIO device test for RISC-V at the time being.
     ///
     /// ```rust
