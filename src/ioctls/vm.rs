@@ -20,9 +20,11 @@ use crate::ioctls::{KvmRunWrapper, Result};
 use crate::kvm_ioctls::*;
 use vmm_sys_util::errno;
 use vmm_sys_util::eventfd::EventFd;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
+use vmm_sys_util::ioctl::ioctl;
+#[cfg(target_arch = "x86_64")]
 use vmm_sys_util::ioctl::ioctl_with_mut_ptr;
-use vmm_sys_util::ioctl::{ioctl, ioctl_with_mut_ref, ioctl_with_ref, ioctl_with_val};
+use vmm_sys_util::ioctl::{ioctl_with_mut_ref, ioctl_with_ref, ioctl_with_val};
 
 /// An address either in programmable I/O space or in memory mapped I/O space.
 ///
@@ -1200,7 +1202,7 @@ impl VmFd {
     /// });
     /// ```
     pub fn create_device(&self, device: &mut kvm_create_device) -> Result<DeviceFd> {
-        let ret = unsafe { ioctl_with_ref(self, KVM_CREATE_DEVICE(), device) };
+        let ret = unsafe { ioctl_with_mut_ref(self, KVM_CREATE_DEVICE(), device) };
         if ret == 0 {
             Ok(new_device(unsafe { File::from_raw_fd(device.fd as i32) }))
         } else {
