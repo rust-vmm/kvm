@@ -1,3 +1,5 @@
+# v0.12.1
+
 ## Fixed
 
 - [[#298](https://github.com/rust-vmm/kvm/pull/298)]: Fixed incorrect
