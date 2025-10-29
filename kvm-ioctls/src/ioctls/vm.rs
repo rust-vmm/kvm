@@ -533,6 +533,44 @@ impl VmFd {
         }
     }
 
+    /// Sets the MSR filter as per the `KVM_X86_SET_MSR_FILTER` ioctl.
+    ///
+    /// See the documentation for `KVM_X86_SET_MSR_FILTER` in the
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - MSR filter configuration to be set.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the given `kvm_msr_filter` is valid. Specifically any `bitmap` pointers in the `kvm_msr_filter_range`
+    /// structures within `filter.ranges` must point to valid memory of sufficient size.
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_bindings;
+    /// # extern crate kvm_ioctls;
+    /// # use kvm_bindings::kvm_msr_filter;
+    /// # use kvm_ioctls::Kvm;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let mut filter = kvm_msr_filter::default();
+    /// // Safety: filter is valid
+    /// unsafe { vm.set_msr_filter(&mut filter).unwrap() };
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn set_msr_filter(&self, filter: &kvm_msr_filter) -> Result<()> {
+        // SAFETY: Safe because we call this with a Vm fd and we trust the kernel, and the caller
+        // has promised validity of the filter structure.
+        let ret = unsafe { ioctl_with_ref(self, KVM_SET_MSR_FILTER(), filter) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
+
     /// Directly injects a MSI message as per the `KVM_SIGNAL_MSI` ioctl.
     ///
     /// See the documentation for `KVM_SIGNAL_MSI`.
@@ -2899,5 +2937,45 @@ mod tests {
 
         vm.has_device_attr(&dist_attr).unwrap();
         vm.set_device_attr(&dist_attr).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_set_msr_filter() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+
+        if !kvm.check_extension(Cap::X86MsrFilter) {
+            return;
+        }
+
+        let empty_filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_ALLOW,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        // Safety: empty_filter is valid
+        unsafe { vm.set_msr_filter(&empty_filter).unwrap() };
+
+        // From KVM API:
+        // Calling this ioctl with an empty set of ranges (all nmsrs == 0) disables MSR filtering. In that mode, KVM_MSR_FILTER_DEFAULT_DENY is invalid and causes an error.
+        let empty_deny_filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_DENY,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        // Safety: empty_deny_filter is invalid
+        unsafe { vm.set_msr_filter(&empty_deny_filter).unwrap_err() };
+
+        // disable access to all except 1 MSR
+        let mut filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_DENY,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        let mut bitmap = 0b1u8;
+        filter.ranges[0].base = 0x10; // IA32_TIME_STAMP_COUNTER
+        filter.ranges[0].flags = KVM_MSR_FILTER_READ | KVM_MSR_FILTER_WRITE;
+        filter.ranges[0].nmsrs = 1;
+        filter.ranges[0].bitmap = &mut bitmap;
+        // Safety: bitmap is valid 8 bits, and nmsrs is 1
+        unsafe { vm.set_msr_filter(&filter).unwrap() };
     }
 }
