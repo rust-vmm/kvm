@@ -184,6 +184,8 @@ pub enum VcpuExit<'a> {
         /// size
         size: u64,
     },
+    /// Corresponds to KVM_EXIT_RISCV_SBI
+    RiscvSbi(&'a mut kvm_run__bindgen_ty_1__bindgen_ty_24),
     /// Corresponds to an exit reason that is unknown from the current version
     /// of the kvm-ioctls crate. Let the consumer decide about what to do with
     /// it.
@@ -1641,6 +1643,13 @@ impl VcpuFd {
                     Ok(VcpuExit::IoapicEoi(eoi.vector))
                 }
                 KVM_EXIT_HYPERV => Ok(VcpuExit::Hyperv),
+                #[cfg(target_arch = "riscv64")]
+                KVM_EXIT_RISCV_SBI => {
+                    // SAFETY: Safe because the exit_reason (which comes from the kernel) told us
+                    // which union field to use.
+                    let riscv_sbi = unsafe { &mut run.__bindgen_anon_1.riscv_sbi };
+                    Ok(VcpuExit::RiscvSbi(riscv_sbi))
+                }
                 r => Ok(VcpuExit::Unsupported(r)),
             }
         } else {
@@ -2572,6 +2581,25 @@ mod tests {
             0x03, 0xa5, 0x0c, 0x00, // lw   a0, 0(s9);  test MMIO read
             0x93, 0x05, 0x70, 0x60, // li   a1, 0x0607;
             0x23, 0xa0, 0xbc, 0x00, // sw   a1, 0(s9);  test MMIO write
+            //sbi_console_getchar
+            0x01, 0x45, // li   a0, 0
+            0x81, 0x45, // li   a1, 0
+            0x01, 0x46, // li   a2, 0
+            0x81, 0x46, // li   a3, 0
+            0x01, 0x47, // li   a4, 0
+            0x81, 0x47, // li   a5, 0
+            0x01, 0x48, // li   a6, 0
+            0x89, 0x48, // li   a7, 2
+            0x73, 0x00, 0x00, 0x00, //ecall
+            //sbi_console_putchar
+            0x81, 0x45, // li   a1, 0
+            0x01, 0x46, // li   a2, 0
+            0x81, 0x46, // li   a3, 0
+            0x01, 0x47, // li   a4, 0
+            0x81, 0x47, // li   a5, 0
+            0x01, 0x48, // li   a6, 0
+            0x85, 0x48, // li   a7, 1
+            0x73, 0x00, 0x00, 0x00, //ecall
             0x6f, 0x00, 0x00, 0x00, // j .; shouldn't get here, but if so loop forever
         ];
 
@@ -2643,7 +2671,20 @@ mod tests {
                         .map(|page| page.count_ones())
                         .sum();
                     assert_eq!(dirty_pages, 1);
-                    break;
+                }
+                VcpuExit::RiscvSbi(riscv_sbi) => {
+                    match riscv_sbi.extension_id as usize {
+                        2 /* SBI_EXT_0_1_CONSOLE_GETCHAR */ => {
+                            let ch = &mut riscv_sbi.ret[..1];
+                            ch[0] = 0x2a;
+                        }
+                        1 /* SBI_EXT_0_1_CONSOLE_PUTCHAR */ => {
+                            let ch = riscv_sbi.args[0];
+                            assert_eq!(ch, 0x2a);
+                            break;
+                        }
+                        _ => panic!("unexpected extension_id: {:?}", riscv_sbi.extension_id),
+                    }
                 }
                 r => panic!("unexpected exit reason: {:?}", r),
             }

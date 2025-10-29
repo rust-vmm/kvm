@@ -3,6 +3,8 @@
 ## Upcoming Release
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+- [[#352]](https://github.com/rust-vmm/kvm/pull/352) Return riscv_sbi
+  to VMM for further process.
 
 ## v0.24.0
 
