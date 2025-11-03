@@ -123,6 +123,9 @@ ioctl_ior_nr!(KVM_MEMORY_ENCRYPT_REG_REGION, KVMIO, 0xbb, kvm_enc_region);
 /* Available on SEV-enabled guests. */
 #[cfg(target_arch = "x86_64")]
 ioctl_ior_nr!(KVM_MEMORY_ENCRYPT_UNREG_REGION, KVMIO, 0xbc, kvm_enc_region);
+/* Available with KVM_CAP_X86_MSR_FILTER */
+#[cfg(target_arch = "x86_64")]
+ioctl_iow_nr!(KVM_SET_MSR_FILTER, KVMIO, 0xc6, kvm_msr_filter);
 
 // Ioctls for VCPU fds.
 

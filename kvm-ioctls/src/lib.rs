@@ -243,6 +243,8 @@ pub use ioctls::vcpu::{HypercallExit, VcpuExit, VcpuFd};
 pub use ioctls::vcpu::{KvmNestedStateBuffer, MsrExitReason, ReadMsrExit, SyncReg, WriteMsrExit};
 
 pub use ioctls::vm::{IoEventAddress, NoDatamatch, VmFd};
+#[cfg(target_arch = "x86_64")]
+pub use ioctls::vm::{MsrFilterDefaultAction, MsrFilterRange, MsrFilterRangeFlags};
 // The following example is used to verify that our public
 // structures are exported properly.
 /// # Example
