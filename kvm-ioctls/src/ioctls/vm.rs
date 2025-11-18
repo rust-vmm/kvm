@@ -668,7 +668,7 @@ impl VmFd {
             dst.flags = src.flags.bits();
             dst.nmsrs = src.msr_count;
             dst.base = src.base;
-            dst.bitmap = src.bitmap.as_ptr() as *mut u8; // TODO: is this cast ok? kvm_msr_filter_range.bitmap is __*mut__ u8. Ideally I don't want to require input parameters to be mutable unless it's necessary
+            dst.bitmap = src.bitmap.as_ptr() as *mut u8; // The ioctl doesn't modify the bitmap, so this cast is safe.
         }
 
         // SAFETY: We checked the length of all bitmaps above.
