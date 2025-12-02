@@ -3,6 +3,7 @@
 ## Upcoming Release
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
+- [[#359]](https://github.com/rust-vmm/kvm/pull/359) Add support for `KVM_SET_MSR_FILTER` vm ioctl on x86_64.
 
 ## v0.24.0
 
