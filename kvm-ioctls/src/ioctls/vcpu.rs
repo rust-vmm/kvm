@@ -2999,6 +2999,7 @@ mod tests {
             vcpu.enable_cap(&cap).unwrap();
         }
     }
+
     #[cfg(target_arch = "x86_64")]
     #[test]
     fn test_get_tsc_khz() {

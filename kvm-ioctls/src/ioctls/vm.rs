@@ -3094,6 +3094,41 @@ mod tests {
         vm.set_device_attr(&dist_attr).unwrap();
     }
 
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn test_get_tsc_khz() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+
+        if !kvm.check_extension(Cap::GetTscKhz) {
+            vm.get_tsc_khz().unwrap_err();
+        } else {
+            assert!(vm.get_tsc_khz().unwrap() > 0);
+        }
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn test_set_tsc_khz() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let freq = vm.get_tsc_khz().unwrap();
+
+        if !(kvm.check_extension(Cap::GetTscKhz) && kvm.check_extension(Cap::TscControl)) {
+            vm.set_tsc_khz(0).unwrap_err();
+        } else {
+            vm.set_tsc_khz(freq - 500000).unwrap();
+            assert_eq!(vm.get_tsc_khz().unwrap(), freq - 500000);
+            let vcpu = vm.create_vcpu(0).unwrap();
+            assert_eq!(vcpu.get_tsc_khz().unwrap(), freq - 500000);
+
+            vm.set_tsc_khz(freq + 500000).unwrap();
+            assert_eq!(vm.get_tsc_khz().unwrap(), freq + 500000);
+            let vcpu = vm.create_vcpu(1).unwrap();
+            assert_eq!(vcpu.get_tsc_khz().unwrap(), freq + 500000);
+        }
+    }
+
     #[test]
     #[cfg(target_arch = "x86_64")]
     fn test_set_msr_filter_unchecked() {
