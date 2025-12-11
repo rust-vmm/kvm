@@ -7,6 +7,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the THIRD-PARTY file.
 
+#[cfg(target_arch = "x86_64")]
+use bitflags::bitflags;
 use kvm_bindings::*;
 use std::fs::File;
 use std::os::raw::c_void;
@@ -52,6 +54,48 @@ impl From<NoDatamatch> for u64 {
     fn from(_: NoDatamatch) -> u64 {
         0
     }
+}
+
+/// Helper structure describing one MSR filter range consumed by
+/// [`VmFd::set_msr_filter`].
+#[cfg(target_arch = "x86_64")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct MsrFilterRange<'a> {
+    /// Flags specifying which MSR operations are filtered in this range.
+    pub flags: MsrFilterRangeFlags,
+    /// Base MSR index of the range.
+    pub base: u32,
+    /// Number of MSRs in the range.
+    pub msr_count: u32,
+    /// Bitmap specifying allowed operations for each MSR in the range.
+    pub bitmap: &'a [u8],
+}
+
+#[cfg(target_arch = "x86_64")]
+bitflags! {
+    /// Flags selecting which MSR operations are filtered for a range.
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct MsrFilterRangeFlags: u32 {
+        /// Filter read accesses to MSRs using the given bitmap.
+        /// A 0 in the bitmap indicates that read accesses should be denied,
+        /// while a 1 indicates that a read for a particular MSR should be allowed regardless of the default filter action.
+        const READ = KVM_MSR_FILTER_READ;
+        /// Filter write accesses to MSRs using the given bitmap.
+        /// A 0 in the bitmap indicates that write accesses should be denied,
+        /// while a 1 indicates that a write for a particular MSR should be allowed regardless of the default filter action.
+        const WRITE = KVM_MSR_FILTER_WRITE;
+    }
+}
+
+/// Default action for MSR filtering.
+#[cfg(target_arch = "x86_64")]
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum MsrFilterDefaultAction {
+    /// If no filter range matches an MSR index that is getting accessed, KVM will allow accesses to all MSRs by default.
+    ALLOW = KVM_MSR_FILTER_DEFAULT_ALLOW,
+    /// If no filter range matches an MSR index that is getting accessed, KVM will deny accesses to all MSRs by default.
+    DENY = KVM_MSR_FILTER_DEFAULT_DENY,
 }
 
 /// Wrapper over KVM VM ioctls.
@@ -531,6 +575,104 @@ impl VmFd {
         } else {
             Err(errno::Error::last())
         }
+    }
+
+    /// Sets the MSR filter as per the `KVM_X86_SET_MSR_FILTER` ioctl.
+    ///
+    /// See the documentation for `KVM_X86_SET_MSR_FILTER` in the
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - MSR filter configuration to be set.
+    ///
+    /// # Safety
+    ///
+    /// This is the unsafe version of [`VmFd::set_msr_filter`]. The caller must ensure that the given `kvm_msr_filter` is valid.
+    /// Specifically any `bitmap` pointers in the `kvm_msr_filter_range` structures within `filter.ranges` must point to valid memory of sufficient size.
+    /// # Example
+    ///
+    /// ```rust
+    /// # use kvm_bindings::kvm_msr_filter;
+    /// # use kvm_ioctls::Kvm;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let filter = kvm_msr_filter::default();
+    /// // Safety: filter is valid
+    /// unsafe { vm.set_msr_filter_unchecked(&filter).unwrap() };
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn set_msr_filter_unchecked(&self, filter: &kvm_msr_filter) -> Result<()> {
+        // SAFETY: Safe because we call this with a Vm fd and we trust the kernel, and the caller
+        // has promised validity of the filter structure.
+        let ret = unsafe { ioctl_with_ref(self, KVM_SET_MSR_FILTER(), filter) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
+
+    /// Sets the MSR filter as per the `KVM_X86_SET_MSR_FILTER` ioctl.
+    ///
+    /// See the documentation for `KVM_X86_SET_MSR_FILTER` in the
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - MSR filter configuration to be set.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use kvm_ioctls::Kvm;
+    /// # use kvm_ioctls::{
+    /// #     MsrFilterDefaultAction,
+    /// #     MsrFilterRange,
+    /// #     MsrFilterRangeFlags,
+    /// # };
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let mut bitmap = [0xffu8; 4];
+    /// let mut range = MsrFilterRange {
+    ///     flags: MsrFilterRangeFlags::READ | MsrFilterRangeFlags::WRITE,
+    ///     base: 0,
+    ///     msr_count: 32,
+    ///     bitmap: &bitmap,
+    /// };
+    /// vm.set_msr_filter(MsrFilterDefaultAction::DENY, &[range])
+    ///     .unwrap();
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub fn set_msr_filter(
+        &self,
+        default_action: MsrFilterDefaultAction,
+        ranges: &[MsrFilterRange<'_>],
+    ) -> Result<()> {
+        if ranges.len() > KVM_MSR_FILTER_MAX_RANGES as usize {
+            return Err(errno::Error::new(libc::EINVAL));
+        }
+
+        let mut raw_filter = kvm_msr_filter {
+            flags: default_action as u32,
+            ..Default::default()
+        };
+
+        for (dst, src) in raw_filter.ranges.iter_mut().zip(ranges.iter()) {
+            // Validate that the provided bitmap is large enough to hold the specified number of MSRs.
+            let required_bytes = src.msr_count.div_ceil(8) as usize;
+            if src.bitmap.len() < required_bytes {
+                return Err(errno::Error::new(libc::EINVAL));
+            }
+
+            dst.flags = src.flags.bits();
+            dst.nmsrs = src.msr_count;
+            dst.base = src.base;
+            dst.bitmap = src.bitmap.as_ptr() as *mut u8; // The ioctl doesn't modify the bitmap, so this cast is safe.
+        }
+
+        // SAFETY: We checked the length of all bitmaps above.
+        unsafe { self.set_msr_filter_unchecked(&raw_filter) }
     }
 
     /// Directly injects a MSI message as per the `KVM_SIGNAL_MSI` ioctl.
@@ -2899,5 +3041,84 @@ mod tests {
 
         vm.has_device_attr(&dist_attr).unwrap();
         vm.set_device_attr(&dist_attr).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_set_msr_filter_unchecked() {
+        let kvm = Kvm::new().unwrap();
+        if !kvm.check_extension(Cap::X86MsrFilter) {
+            return;
+        }
+
+        let vm = kvm.create_vm().unwrap();
+
+        let empty_filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_ALLOW,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        // Safety: empty_filter is valid
+        unsafe { vm.set_msr_filter_unchecked(&empty_filter).unwrap() };
+
+        // From KVM API:
+        // Calling this ioctl with an empty set of ranges (all nmsrs == 0) disables MSR filtering. In that mode, KVM_MSR_FILTER_DEFAULT_DENY is invalid and causes an error.
+        let empty_deny_filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_DENY,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        // Safety: empty_deny_filter is invalid
+        unsafe { vm.set_msr_filter_unchecked(&empty_deny_filter).unwrap_err() };
+
+        // disable access to all except 1 MSR
+        let mut filter = kvm_msr_filter {
+            flags: KVM_MSR_FILTER_DEFAULT_DENY,
+            ranges: [kvm_msr_filter_range::default(); 16],
+        };
+        let mut bitmap = 0b1u8;
+        filter.ranges[0].base = 0x10; // IA32_TIME_STAMP_COUNTER
+        filter.ranges[0].flags = KVM_MSR_FILTER_READ | KVM_MSR_FILTER_WRITE;
+        filter.ranges[0].nmsrs = 1;
+        filter.ranges[0].bitmap = &mut bitmap;
+        // Safety: bitmap is valid 8 bits, and nmsrs is 1
+        unsafe { vm.set_msr_filter_unchecked(&filter).unwrap() };
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_set_msr_filter_safe() {
+        let kvm = Kvm::new().unwrap();
+        if !kvm.check_extension(Cap::X86MsrFilter) {
+            return;
+        }
+
+        let vm = kvm.create_vm().unwrap();
+
+        // Empty ranges with the default allow action disable filtering.
+        vm.set_msr_filter(MsrFilterDefaultAction::ALLOW, &[])
+            .unwrap();
+
+        // Empty ranges with default deny should surface an error from KVM.
+        vm.set_msr_filter(MsrFilterDefaultAction::DENY, &[])
+            .unwrap_err();
+
+        // A bitmap that is too short for the requested range is rejected locally.
+        let bad_range = MsrFilterRange {
+            flags: MsrFilterRangeFlags::READ,
+            base: 0,
+            msr_count: 9,
+            bitmap: &[0xff],
+        };
+        vm.set_msr_filter(MsrFilterDefaultAction::ALLOW, &[bad_range])
+            .unwrap_err();
+
+        // Valid deny-list that allows a single MSR succeeds.
+        let allow_range = MsrFilterRange {
+            flags: MsrFilterRangeFlags::READ | MsrFilterRangeFlags::WRITE,
+            base: 0x10,
+            msr_count: 1,
+            bitmap: &[0x1],
+        };
+        vm.set_msr_filter(MsrFilterDefaultAction::DENY, &[allow_range])
+            .unwrap();
     }
 }
