@@ -16,7 +16,7 @@ use libc::EINVAL;
 use std::fs::File;
 use std::os::unix::io::{AsRawFd, RawFd};
 
-use crate::ioctls::{KvmCoalescedIoRing, KvmRunWrapper, Result};
+use crate::ioctls::{KvmCoalescedIoRing, KvmDirtyLogRing, KvmRunWrapper, Result};
 use crate::kvm_ioctls::*;
 use vmm_sys_util::errno;
 use vmm_sys_util::ioctl::{ioctl, ioctl_with_mut_ref, ioctl_with_ref};
@@ -184,6 +184,8 @@ pub enum VcpuExit<'a> {
         /// size
         size: u64,
     },
+    /// Corresponds to KVM_EXIT_DIRTY_RING_FULL.
+    DirtyRingFull,
     /// Corresponds to an exit reason that is unknown from the current version
     /// of the kvm-ioctls crate. Let the consumer decide about what to do with
     /// it.
@@ -197,6 +199,9 @@ pub struct VcpuFd {
     kvm_run_ptr: KvmRunWrapper,
     /// A pointer to the coalesced MMIO page
     coalesced_mmio_ring: Option<KvmCoalescedIoRing>,
+    /// A pointer to the dirty log ring
+    #[allow(unused)]
+    dirty_log_ring: Option<KvmDirtyLogRing>,
 }
 
 /// KVM Sync Registers used to tell KVM which registers to sync
@@ -1641,6 +1646,7 @@ impl VcpuFd {
                     Ok(VcpuExit::IoapicEoi(eoi.vector))
                 }
                 KVM_EXIT_HYPERV => Ok(VcpuExit::Hyperv),
+                KVM_EXIT_DIRTY_RING_FULL => Ok(VcpuExit::DirtyRingFull),
                 r => Ok(VcpuExit::Unsupported(r)),
             }
         } else {
@@ -2047,6 +2053,36 @@ impl VcpuFd {
         }
     }
 
+    /// Gets the dirty log ring iterator if one is mapped.
+    ///
+    /// Returns an iterator over dirty guest frame numbers as (slot, offset) tuples.
+    /// Returns `None` if no dirty log ring has been mapped.
+    ///
+    /// # Returns
+    ///
+    /// An optional iterator over the dirty log ring entries.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use kvm_ioctls::Kvm;
+    /// # use kvm_ioctls::Cap;
+    /// let kvm = Kvm::new().unwrap();
+    /// let mut vm = kvm.create_vm().unwrap();
+    /// vm.enable_dirty_log_ring(None).unwrap();
+    /// let mut vcpu = vm.create_vcpu(0).unwrap();
+    /// if kvm.check_extension(Cap::DirtyLogRing) {
+    ///     if let Some(mut iter) = vcpu.dirty_log_ring_iter() {
+    ///         for (slot, offset) in iter {
+    ///             println!("Dirty page in slot {} at offset {}", slot, offset);
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn dirty_log_ring_iter(&mut self) -> Option<impl Iterator<Item = (u32, u64)>> {
+        self.dirty_log_ring.as_mut()
+    }
+
     /// Maps the coalesced MMIO ring page. This allows reading entries from
     /// the ring via [`coalesced_mmio_read()`](VcpuFd::coalesced_mmio_read).
     ///
@@ -2102,11 +2138,16 @@ impl VcpuFd {
 /// This should not be exported as a public function because the preferred way is to use
 /// `create_vcpu` from `VmFd`. The function cannot be part of the `VcpuFd` implementation because
 /// then it would be exported with the public `VcpuFd` interface.
-pub fn new_vcpu(vcpu: File, kvm_run_ptr: KvmRunWrapper) -> VcpuFd {
+pub fn new_vcpu(
+    vcpu: File,
+    kvm_run_ptr: KvmRunWrapper,
+    dirty_log_ring: Option<KvmDirtyLogRing>,
+) -> VcpuFd {
     VcpuFd {
         vcpu,
         kvm_run_ptr,
         coalesced_mmio_ring: None,
+        dirty_log_ring,
     }
 }
 
@@ -2769,6 +2810,144 @@ mod tests {
                         .into_iter()
                         .map(|page| page.count_ones())
                         .sum();
+                    assert_eq!(dirty_pages, 2);
+                    break;
+                }
+                r => panic!("unexpected exit reason: {:?}", r),
+            }
+        }
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn test_run_code_dirty_log_ring() {
+        use std::io::Write;
+
+        let kvm = Kvm::new().unwrap();
+        let mut vm = kvm.create_vm().unwrap();
+
+        // Enable dirty log ring
+        let need_bitmap = vm.enable_dirty_log_ring(None).unwrap();
+
+        // This example is based on https://lwn.net/Articles/658511/
+        #[rustfmt::skip]
+        let code = [
+            0xba, 0xf8, 0x03, /* mov $0x3f8, %dx */
+            0x00, 0xd8, /* add %bl, %al */
+            0x04, b'0', /* add $'0', %al */
+            0xee, /* out %al, %dx */
+            0xec, /* in %dx, %al */
+            0xc6, 0x06, 0x00, 0x80, 0x00, /* movl $0, (0x8000); This generates a MMIO Write.*/
+            0x8a, 0x16, 0x00, 0x80, /* movl (0x8000), %dl; This generates a MMIO Read.*/
+            0xc6, 0x06, 0x00, 0x20, 0x00, /* movl $0, (0x2000); Dirty one page in guest mem. */
+            0xf4, /* hlt */
+        ];
+        let expected_rips: [u64; 3] = [0x1003, 0x1005, 0x1007];
+
+        let mem_size = 0x4000;
+        let load_addr = mmap_anonymous(mem_size).as_ptr();
+        let guest_addr: u64 = 0x1000;
+        let slot: u32 = 0;
+        let mem_region = kvm_userspace_memory_region {
+            slot,
+            guest_phys_addr: guest_addr,
+            memory_size: mem_size as u64,
+            userspace_addr: load_addr as u64,
+            flags: KVM_MEM_LOG_DIRTY_PAGES,
+        };
+        unsafe {
+            vm.set_user_memory_region(mem_region).unwrap();
+        }
+
+        unsafe {
+            // Get a mutable slice of `mem_size` from `load_addr`.
+            // This is safe because we mapped it before.
+            let mut slice = std::slice::from_raw_parts_mut(load_addr, mem_size);
+            slice.write_all(&code).unwrap();
+        }
+
+        let mut vcpu_fd = vm.create_vcpu(0).unwrap();
+
+        let mut vcpu_sregs = vcpu_fd.get_sregs().unwrap();
+        assert_ne!(vcpu_sregs.cs.base, 0);
+        assert_ne!(vcpu_sregs.cs.selector, 0);
+        vcpu_sregs.cs.base = 0;
+        vcpu_sregs.cs.selector = 0;
+        vcpu_fd.set_sregs(&vcpu_sregs).unwrap();
+
+        let mut vcpu_regs = vcpu_fd.get_regs().unwrap();
+        // Set the Instruction Pointer to the guest address where we loaded the code.
+        vcpu_regs.rip = guest_addr;
+        vcpu_regs.rax = 2;
+        vcpu_regs.rbx = 3;
+        vcpu_regs.rflags = 2;
+        vcpu_fd.set_regs(&vcpu_regs).unwrap();
+
+        let mut debug_struct = kvm_guest_debug {
+            control: KVM_GUESTDBG_ENABLE | KVM_GUESTDBG_SINGLESTEP,
+            pad: 0,
+            arch: kvm_guest_debug_arch {
+                debugreg: [0, 0, 0, 0, 0, 0, 0, 0],
+            },
+        };
+        vcpu_fd.set_guest_debug(&debug_struct).unwrap();
+
+        let mut instr_idx = 0;
+        loop {
+            match vcpu_fd.run().expect("run failed") {
+                VcpuExit::IoIn(addr, data) => {
+                    assert_eq!(addr, 0x3f8);
+                    assert_eq!(data.len(), 1);
+                }
+                VcpuExit::IoOut(addr, data) => {
+                    assert_eq!(addr, 0x3f8);
+                    assert_eq!(data.len(), 1);
+                    assert_eq!(data[0], b'5');
+                }
+                VcpuExit::MmioRead(addr, data) => {
+                    assert_eq!(addr, 0x8000);
+                    assert_eq!(data.len(), 1);
+                }
+                VcpuExit::MmioWrite(addr, data) => {
+                    assert_eq!(addr, 0x8000);
+                    assert_eq!(data.len(), 1);
+                    assert_eq!(data[0], 0);
+                }
+                VcpuExit::Debug(debug) => {
+                    if instr_idx == expected_rips.len() - 1 {
+                        // Disabling debugging/single-stepping
+                        debug_struct.control = 0;
+                        vcpu_fd.set_guest_debug(&debug_struct).unwrap();
+                    } else if instr_idx >= expected_rips.len() {
+                        unreachable!();
+                    }
+                    let vcpu_regs = vcpu_fd.get_regs().unwrap();
+                    assert_eq!(vcpu_regs.rip, expected_rips[instr_idx]);
+                    assert_eq!(debug.exception, 1);
+                    assert_eq!(debug.pc, expected_rips[instr_idx]);
+                    // Check first 15 bits of DR6
+                    let mask = (1 << 16) - 1;
+                    assert_eq!(debug.dr6 & mask, 0b100111111110000);
+                    // Bit 10 in DR7 is always 1
+                    assert_eq!(debug.dr7, 1 << 10);
+                    instr_idx += 1;
+                }
+                VcpuExit::Hlt => {
+                    // The code snippet dirties 2 pages:
+                    // * one when the code itself is loaded in memory;
+                    // * and one more from the `movl` that writes to address 0x8000
+
+                    let dirty_pages: u32 =
+                        u32::try_from(vcpu_fd.dirty_log_ring_iter().unwrap().count()).unwrap()
+                            + if need_bitmap {
+                                let dirty_pages_bitmap = vm.get_dirty_log(slot, mem_size).unwrap();
+                                dirty_pages_bitmap
+                                    .into_iter()
+                                    .map(|page| page.count_ones())
+                                    .sum()
+                            } else {
+                                0
+                            };
                     assert_eq!(dirty_pages, 2);
                     break;
                 }
