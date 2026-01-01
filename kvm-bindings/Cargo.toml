@@ -27,5 +27,5 @@ serde = { version = "1.0.0", optional = true, features = ["derive"] }
 zerocopy = { version = "0.8.23", optional = true, features = ["derive"] }
 
 [dev-dependencies]
-bincode = {version = "2.0.1", features = ["serde"] }
+bincode = {version = "3.0.0", features = ["serde"] }
 serde_json = "1.0.125"
