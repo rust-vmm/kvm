@@ -4,6 +4,7 @@
 
 - Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
 - [[#359]](https://github.com/rust-vmm/kvm/pull/359) Add support for `KVM_SET_MSR_FILTER` vm ioctl on x86_64.
+- Add support for `KVM_REINJECT_CONTROL` vm ioctl on x86_64, also a shortcut `disable_pit_reinjection` on `VmFd`. 
 
 ## v0.24.0
 

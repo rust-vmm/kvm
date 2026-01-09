@@ -410,6 +410,70 @@ impl VmFd {
         }
     }
 
+    /// Controls the PIT Reinjection feature.
+    ///
+    /// # Arguments
+    ///
+    /// * rejection_control - `kvm_pit_rejection_control` structure to enable/disable PIT reinjection.
+    ///
+    /// # Example
+    /// ```rust
+    /// extern crate kvm_ioctls;
+    /// extern crate kvm_bindings;
+    /// use kvm_ioctls::Kvm;
+    /// use kvm_bindings::{kvm_reinject_control};
+    /// use kvm_bindings::kvm_pit_config;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// vm.create_irq_chip().unwrap();
+    /// let pit_config = kvm_pit_config::default();
+    /// vm.create_pit2(pit_config).unwrap();
+    ///
+    /// let rejection_control = kvm_reinject_control {
+    ///   pit_reinject: 0,
+    ///   ..Default::default()
+    /// };
+    /// vm.control_pit_reinjection(rejection_control).unwrap();
+    #[cfg(target_arch = "x86_64")]
+    pub fn control_pit_reinjection(&self, rejection_control: kvm_reinject_control) -> Result<()> {
+        // SAFETY: Safe because we know that our file is a VM fd and we verify the return result.
+        let ret = unsafe { ioctl_with_ref(self, KVM_REINJECT_CONTROL(), &rejection_control) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
+
+    /// Disable PIT reinjection.
+    ///
+    /// # equivalent to calling `control_pit_reinjection` with `pit_reinject` set to 0.
+    ///
+    /// # kernel doc recommend that this is always done unless the guest OS requires PIT
+    /// # to do reinjection.
+    ///
+    /// # Example
+    /// ```rust
+    /// extern crate kvm_ioctls;
+    /// extern crate kvm_bindings;
+    /// use kvm_bindings::kvm_pit_config;
+    /// use kvm_ioctls::Kvm;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// vm.create_irq_chip().unwrap();
+    /// let pit_config = kvm_bindings::kvm_pit_config::default();
+    /// vm.create_pit2(pit_config).unwrap();
+    /// vm.disable_pit_reinjection().unwrap();
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub fn disable_pit_reinjection(&self) -> Result<()> {
+        let rejection_control = kvm_reinject_control {
+            pit_reinject: 0,
+            ..Default::default()
+        };
+        self.control_pit_reinjection(rejection_control)
+    }
+
     /// Creates a PIT as per the `KVM_CREATE_PIT2` ioctl.
     ///
     /// # Arguments
@@ -2405,6 +2469,20 @@ mod tests {
         other_pit2.channels[1].count_load_time = pit2.channels[1].count_load_time;
         other_pit2.channels[2].count_load_time = pit2.channels[2].count_load_time;
         assert_eq!(pit2, other_pit2);
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_disable_reinjection() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        vm.create_irq_chip().unwrap();
+        vm.create_pit2(kvm_pit_config::default()).unwrap();
+        let reinjection = kvm_reinject_control {
+            pit_reinject: 0,
+            ..Default::default()
+        };
+        vm.control_pit_reinjection(reinjection).unwrap();
     }
 
     #[cfg(target_arch = "x86_64")]
