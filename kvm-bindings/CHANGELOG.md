@@ -2,6 +2,15 @@
 
 ## Upcoming Release
 
+## v0.14.1
+
+### Fixed
+
+- [[#350]](https://github.com/rust-vmm/kvm/pull/350) Fixed a feature
+  inconsistency where the `serde` implementations for `kvm_xsave2` were emitted
+  without the `fam-wrappers` feature, breaking builds that enabled `serde`
+  alone. These impls now require the `fam-wrappers` feature.
+
 ## v0.14.0
 
 ### Changed

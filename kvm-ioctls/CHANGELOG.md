@@ -2,9 +2,18 @@
 
 ## Upcoming Release
 
-- Plumb through KVM_CAP_COUNTER_OFFSET as CounterOffset cap.
-- Plumb through KVM_CAP_DIRTY_LOG_RING as DirtyLogRing cap.
-- [[#359]](https://github.com/rust-vmm/kvm/pull/359) Add support for `KVM_SET_MSR_FILTER` vm ioctl on x86_64.
+## v0.25.0
+
+### Added
+
+- Plumb through `KVM_CAP_COUNTER_OFFSET` as `Cap::CounterOffset`.
+- Plumb through `KVM_CAP_DIRTY_LOG_RING` as `Cap::DirtyLogRing`.
+- [[#359]](https://github.com/rust-vmm/kvm/pull/359) Add support for
+  `KVM_SET_MSR_FILTER` vm ioctl on x86_64.
+
+### Changed
+
+- Upgrade `kvm-bindings` to `v0.14.1`.
 
 ## v0.24.0
 
