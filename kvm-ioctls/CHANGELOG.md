@@ -2,6 +2,11 @@
 
 ## Upcoming Release
 
+### Added
+
+- Support `KVM_GET_DEVICE_ATTR`, `KVM_SET_DEVICE_ATTR` and `KVM_HAS_DEVICE_ATTR`
+  vcpu ioctls on x86_64 (previously only available on aarch64).
+
 ## v0.25.0
 
 ### Added

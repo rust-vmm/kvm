@@ -254,25 +254,41 @@ impl VcpuFd {
     ///
     /// ```rust
     /// # use kvm_ioctls::Kvm;
-    /// # use kvm_bindings::{
-    ///    KVM_ARM_VCPU_PMU_V3_CTRL, KVM_ARM_VCPU_PMU_V3_INIT
-    /// };
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let vcpu = vm.create_vcpu(0).unwrap();
     ///
-    /// let dist_attr = kvm_bindings::kvm_device_attr {
-    ///     group: KVM_ARM_VCPU_PMU_V3_CTRL,
-    ///     attr: u64::from(KVM_ARM_VCPU_PMU_V3_INIT),
-    ///     addr: 0x0,
-    ///     flags: 0,
-    /// };
+    /// #[cfg(target_arch = "aarch64")]
+    /// {
+    ///     use kvm_bindings::{KVM_ARM_VCPU_PMU_V3_CTRL, KVM_ARM_VCPU_PMU_V3_INIT};
+    ///     let dist_attr = kvm_bindings::kvm_device_attr {
+    ///         group: KVM_ARM_VCPU_PMU_V3_CTRL,
+    ///         attr: u64::from(KVM_ARM_VCPU_PMU_V3_INIT),
+    ///         addr: 0x0,
+    ///         flags: 0,
+    ///     };
     ///
-    /// if (vcpu.has_device_attr(&dist_attr).is_ok()) {
-    ///     vcpu.set_device_attr(&dist_attr).unwrap();
+    ///     if vcpu.has_device_attr(&dist_attr).is_ok() {
+    ///         vcpu.set_device_attr(&dist_attr).unwrap();
+    ///     }
+    /// }
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     use kvm_bindings::{KVM_VCPU_TSC_CTRL, KVM_VCPU_TSC_OFFSET};
+    ///     let tsc_offset: u64 = 0;
+    ///     let tsc_attr = kvm_bindings::kvm_device_attr {
+    ///         group: KVM_VCPU_TSC_CTRL,
+    ///         attr: u64::from(KVM_VCPU_TSC_OFFSET),
+    ///         addr: &tsc_offset as *const u64 as u64,
+    ///         flags: 0,
+    ///     };
+    ///
+    ///     if vcpu.has_device_attr(&tsc_attr).is_ok() {
+    ///         vcpu.set_device_attr(&tsc_attr).unwrap();
+    ///     }
     /// }
     /// ```
-    #[cfg(target_arch = "aarch64")]
+    #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
     pub fn set_device_attr(&self, device_attr: &kvm_device_attr) -> Result<()> {
         // SAFETY: Safe because we call this with a Vcpu fd and we trust the kernel.
         let ret = unsafe { ioctl_with_ref(self, KVM_SET_DEVICE_ATTR(), device_attr) };
@@ -294,26 +310,93 @@ impl VcpuFd {
     ///
     /// ```rust
     /// # use kvm_ioctls::Kvm;
-    /// # use kvm_bindings::{
-    ///    KVM_ARM_VCPU_PMU_V3_CTRL, KVM_ARM_VCPU_PMU_V3_INIT
-    /// };
     /// let kvm = Kvm::new().unwrap();
     /// let vm = kvm.create_vm().unwrap();
     /// let vcpu = vm.create_vcpu(0).unwrap();
     ///
-    /// let dist_attr = kvm_bindings::kvm_device_attr {
-    ///     group: KVM_ARM_VCPU_PMU_V3_CTRL,
-    ///     attr: u64::from(KVM_ARM_VCPU_PMU_V3_INIT),
-    ///     addr: 0x0,
-    ///     flags: 0,
-    /// };
+    /// #[cfg(target_arch = "aarch64")]
+    /// {
+    ///     use kvm_bindings::{KVM_ARM_VCPU_PMU_V3_CTRL, KVM_ARM_VCPU_PMU_V3_INIT};
+    ///     let dist_attr = kvm_bindings::kvm_device_attr {
+    ///         group: KVM_ARM_VCPU_PMU_V3_CTRL,
+    ///         attr: u64::from(KVM_ARM_VCPU_PMU_V3_INIT),
+    ///         addr: 0x0,
+    ///         flags: 0,
+    ///     };
     ///
-    /// vcpu.has_device_attr(&dist_attr);
+    ///     vcpu.has_device_attr(&dist_attr).ok();
+    /// }
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     use kvm_bindings::{KVM_VCPU_TSC_CTRL, KVM_VCPU_TSC_OFFSET};
+    ///     let tsc_attr = kvm_bindings::kvm_device_attr {
+    ///         group: KVM_VCPU_TSC_CTRL,
+    ///         attr: u64::from(KVM_VCPU_TSC_OFFSET),
+    ///         addr: 0x0,
+    ///         flags: 0,
+    ///     };
+    ///
+    ///     vcpu.has_device_attr(&tsc_attr).ok();
+    /// }
     /// ```
-    #[cfg(target_arch = "aarch64")]
+    #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
     pub fn has_device_attr(&self, device_attr: &kvm_device_attr) -> Result<()> {
         // SAFETY: Safe because we call this with a Vcpu fd and we trust the kernel.
         let ret = unsafe { ioctl_with_ref(self, KVM_HAS_DEVICE_ATTR(), device_attr) };
+        if ret != 0 {
+            return Err(errno::Error::last());
+        }
+        Ok(())
+    }
+
+    /// Gets a specified piece of cpu configuration and/or state.
+    ///
+    /// See the documentation for `KVM_GET_DEVICE_ATTR` in
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt)
+    /// # Arguments
+    ///
+    /// * `device_attr` - The cpu attribute to be read.
+    ///   Note: This argument serves as both input and output.
+    ///   When calling this function, the user should explicitly provide
+    ///   valid values for the `group` and the `attr` fields, and a valid
+    ///   userspace address (i.e. the `addr` field) to store the returned
+    ///   attribute data.
+    ///
+    /// # Safety
+    ///
+    /// The caller is responsible for the validity of the `device_attr` argument,
+    /// including that it is safe to write to the `addr` member.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use kvm_ioctls::Kvm;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// let vcpu = vm.create_vcpu(0).unwrap();
+    ///
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     use kvm_bindings::{KVM_VCPU_TSC_CTRL, KVM_VCPU_TSC_OFFSET};
+    ///     let mut tsc_offset: u64 = 0;
+    ///     let mut tsc_attr = kvm_bindings::kvm_device_attr {
+    ///         group: KVM_VCPU_TSC_CTRL,
+    ///         attr: u64::from(KVM_VCPU_TSC_OFFSET),
+    ///         addr: &mut tsc_offset as *mut u64 as u64,
+    ///         flags: 0,
+    ///     };
+    ///
+    ///     if vcpu.has_device_attr(&tsc_attr).is_ok() {
+    ///         // SAFETY: tsc_attr.addr is safe to write to.
+    ///         unsafe { vcpu.get_device_attr(&mut tsc_attr) }.unwrap();
+    ///     }
+    /// }
+    /// ```
+    #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
+    pub unsafe fn get_device_attr(&self, device_attr: &mut kvm_device_attr) -> Result<()> {
+        // SAFETY: Caller has ensured device_attr.addr is safe to write to.
+        // We call this with a Vcpu fd and we trust the kernel.
+        let ret = unsafe { ioctl_with_mut_ref(self, KVM_GET_DEVICE_ATTR(), device_attr) };
         if ret != 0 {
             return Err(errno::Error::last());
         }
@@ -3217,6 +3300,39 @@ mod tests {
         vcpu.vcpu_init(&kvi).unwrap();
         vcpu.has_device_attr(&dist_attr).unwrap();
         vcpu.set_device_attr(&dist_attr).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_vcpu_attr() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        let vcpu = vm.create_vcpu(0).unwrap();
+
+        let offset_in: u64 = 1 << 30;
+        let set_attr = kvm_device_attr {
+            group: KVM_VCPU_TSC_CTRL,
+            attr: u64::from(KVM_VCPU_TSC_OFFSET),
+            addr: &offset_in as *const u64 as u64,
+            flags: 0,
+        };
+
+        // The TSC offset attribute requires KVM_CAP_VCPU_ATTRIBUTES, which is not
+        // guaranteed on every host, so skip the round-trip if it is unsupported.
+        if vcpu.has_device_attr(&set_attr).is_ok() {
+            vcpu.set_device_attr(&set_attr).unwrap();
+
+            let mut offset_out: u64 = 0;
+            let mut get_attr = kvm_device_attr {
+                group: KVM_VCPU_TSC_CTRL,
+                attr: u64::from(KVM_VCPU_TSC_OFFSET),
+                addr: &mut offset_out as *mut u64 as u64,
+                flags: 0,
+            };
+            // SAFETY: get_attr.addr points to a valid, writable u64.
+            unsafe { vcpu.get_device_attr(&mut get_attr) }.unwrap();
+            assert_eq!(offset_out, offset_in);
+        }
     }
 
     #[test]
