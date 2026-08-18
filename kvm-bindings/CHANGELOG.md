@@ -2,6 +2,11 @@
 
 ## Upcoming Release
 
+### Added
+
+- s390x (`s390x-unknown-linux-gnu`) KVM bindings, including `fam-wrappers` and `serde`
+  support aligned with other architectures.
+
 ## v0.14.1
 
 ### Fixed

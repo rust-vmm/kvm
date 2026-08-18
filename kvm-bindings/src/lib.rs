@@ -28,3 +28,8 @@ pub use self::arm64::*;
 mod riscv64;
 #[cfg(target_arch = "riscv64")]
 pub use self::riscv64::*;
+
+#[cfg(target_arch = "s390x")]
+mod s390x;
+#[cfg(target_arch = "s390x")]
+pub use self::s390x::*;
