@@ -10,6 +10,8 @@
   `KVM_CAP_ARM_WRITABLE_IMP_ID_REGS` (Linux 6.15), without which writes to the
   implementation ID registers (for example `MIDR_EL1` through a VMM CPU
   template) fail with EINVAL.
+- `VcpuFd::nested_state()` returns `NonZeroUsize` directly because a successful
+  header-only response can contain nested virtualization state.
 
 ## v0.25.0
 

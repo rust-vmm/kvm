@@ -1958,8 +1958,8 @@ impl VcpuFd {
     /// - `buffer`: The buffer to be filled with the new nested state.
     ///
     /// # Return Value
-    /// If this returns `None`, KVM doesn't have nested state. Otherwise, the
-    /// actual length of the state is returned.
+    /// The actual length of the state. A header-only response is preserved
+    /// because the header can contain nested virtualization state.
     ///
     /// # Example
     ///
@@ -1978,21 +1978,14 @@ impl VcpuFd {
     pub fn nested_state(
         &self,
         buffer: &mut KvmNestedStateBuffer,
-    ) -> Result<Option<NonZeroUsize /* actual length of state */>> {
+    ) -> Result<NonZeroUsize /* actual length of state */> {
         assert_ne!(buffer.size, 0, "buffer should not report a size of zero");
 
         // SAFETY: Safe because we call this with a Vcpu fd and we trust the kernel.
         let ret = unsafe { ioctl_with_mut_ref(self, KVM_GET_NESTED_STATE(), buffer) };
         match ret {
-            0 => {
-                let size = buffer.size as usize;
-                let just_hdr_size = size_of::<kvm_nested_state>();
-                if size <= just_hdr_size {
-                    Ok(None)
-                } else {
-                    Ok(Some(NonZeroUsize::new(size).unwrap()))
-                }
-            }
+            0 => Ok(NonZeroUsize::new(buffer.size as usize)
+                .expect("KVM returned zero-sized nested state")),
             _ => Err(errno::Error::last()),
         }
     }
@@ -3671,10 +3664,12 @@ mod tests {
 
     #[test]
     #[cfg(target_arch = "x86_64")]
-    fn test_get_and_set_nested_state() {
+    fn test_get_and_set_header_only_nested_state() {
         let kvm = Kvm::new().unwrap();
         let vm = kvm.create_vm().unwrap();
         let vcpu = vm.create_vcpu(0).unwrap();
+        let cpuid = kvm.get_supported_cpuid(KVM_MAX_CPUID_ENTRIES).unwrap();
+        vcpu.set_cpuid2(&cpuid).unwrap();
 
         // Ensure that KVM also during runtime never wants more memory than we have pre-allocated
         // by the helper type. KVM is expected to report:
@@ -3691,11 +3686,32 @@ mod tests {
         );
 
         vcpu.nested_state(&mut state_buffer).unwrap();
-        let old_state = state_buffer;
-
-        // There is no nested guest in this test, so there is no payload.
+        // Enter header-only nested state without loading an L2 control block.
+        match u32::from(state_buffer.format) {
+            KVM_STATE_NESTED_FORMAT_VMX => state_buffer.hdr.vmx.vmxon_pa = 0x1000,
+            KVM_STATE_NESTED_FORMAT_SVM => {
+                state_buffer.flags |= KVM_STATE_NESTED_GIF_SET as u16;
+            }
+            format => panic!("unsupported nested state format: {format}"),
+        }
         assert_eq!(state_buffer.size as usize, size_of::<kvm_nested_state>());
+        vcpu.set_nested_state(&state_buffer).unwrap();
 
-        vcpu.set_nested_state(&old_state).unwrap();
+        let mut retrieved = KvmNestedStateBuffer::default();
+        let actual_size = vcpu.nested_state(&mut retrieved).unwrap();
+        assert_eq!(
+            actual_size,
+            NonZeroUsize::new(size_of::<kvm_nested_state>()).unwrap()
+        );
+        match u32::from(retrieved.format) {
+            // SAFETY: KVM reported the VMX format above.
+            KVM_STATE_NESTED_FORMAT_VMX => unsafe {
+                assert_eq!(retrieved.hdr.vmx.vmxon_pa, 0x1000);
+            },
+            KVM_STATE_NESTED_FORMAT_SVM => {
+                assert_ne!(retrieved.flags & KVM_STATE_NESTED_GIF_SET as u16, 0);
+            }
+            format => panic!("unsupported nested state format: {format}"),
+        }
     }
 }
