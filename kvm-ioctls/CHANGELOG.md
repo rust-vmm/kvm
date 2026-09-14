@@ -11,6 +11,9 @@
   implementation ID registers (for example `MIDR_EL1` through a VMM CPU
   template) fail with EINVAL.
 
+- [[#386]](https://github.com/rust-vmm/kvm/pull/386) Added support for the
+  `KVM_REINJECT_CONTROL` vm ioctl on x86_64.
+
 ## v0.25.0
 
 ### Added

@@ -515,6 +515,42 @@ impl VmFd {
         }
     }
 
+    /// X86 specific call to set the PIT re-injection control.
+    ///
+    /// See the documentation for `KVM_REINJECT_CONTROL` in the
+    /// [KVM API doc](https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt).
+    ///
+    /// # Arguments
+    ///
+    /// * `control` - `kvm_reinject_control` to be set.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # extern crate kvm_bindings;
+    /// # extern crate kvm_ioctls;
+    /// # use kvm_bindings::{kvm_pit_config, kvm_reinject_control};
+    /// # use kvm_ioctls::Kvm;
+    /// let kvm = Kvm::new().unwrap();
+    /// let vm = kvm.create_vm().unwrap();
+    /// vm.create_irq_chip().unwrap();
+    /// vm.create_pit2(kvm_pit_config::default()).unwrap();
+    /// let mut control = kvm_reinject_control::default();
+    /// control.pit_reinject = 0;
+    /// vm.set_reinject_control(&control).unwrap();
+    /// ```
+    #[cfg(target_arch = "x86_64")]
+    pub fn set_reinject_control(&self, control: &kvm_reinject_control) -> Result<()> {
+        // SAFETY: Here we trust the kernel not to read past the end of the
+        // kvm_reinject_control struct.
+        let ret = unsafe { ioctl_with_ref(self, KVM_REINJECT_CONTROL(), control) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
+
     /// X86 specific call to retrieve the current timestamp of kvmclock.
     ///
     /// See the documentation for `KVM_GET_CLOCK` in the
@@ -2402,6 +2438,22 @@ mod tests {
         assert_eq!(pit2, other_pit2);
     }
 
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn test_reinject_control() {
+        let kvm = Kvm::new().unwrap();
+        let vm = kvm.create_vm().unwrap();
+        assert!(kvm.check_extension(Cap::Irqchip));
+        vm.create_irq_chip().unwrap();
+        vm.create_pit2(kvm_pit_config::default()).unwrap();
+
+        let control = kvm_bindings::kvm_reinject_control {
+            pit_reinject: 0,
+            ..Default::default()
+        };
+        vm.set_reinject_control(&control).unwrap();
+    }
+
     #[cfg(target_arch = "x86_64")]
     #[test]
     fn test_clock() {
@@ -2799,6 +2851,13 @@ mod tests {
         assert_eq!(
             faulty_vm_fd
                 .set_pit2(&kvm_pit_state2::default())
+                .unwrap_err()
+                .errno(),
+            badf_errno
+        );
+        assert_eq!(
+            faulty_vm_fd
+                .set_reinject_control(&kvm_reinject_control::default())
                 .unwrap_err()
                 .errno(),
             badf_errno

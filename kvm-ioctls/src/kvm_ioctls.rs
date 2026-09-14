@@ -83,6 +83,9 @@ ioctl_iow_nr!(
     target_arch = "riscv64"
 ))]
 ioctl_iow_nr!(KVM_SET_GSI_ROUTING, KVMIO, 0x6a, kvm_irq_routing);
+/* Available with KVM_CAP_REINJECT_CONTROL */
+#[cfg(target_arch = "x86_64")]
+ioctl_io_nr!(KVM_REINJECT_CONTROL, KVMIO, 0x71);
 /* Available with KVM_CAP_IRQFD */
 #[cfg(any(
     target_arch = "x86_64",
